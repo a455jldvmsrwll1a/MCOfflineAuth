@@ -12,10 +12,30 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.PublicKey;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.UUID;
+
 public class MCOfflineAuth implements ModInitializer {
-    public static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
+    class ChallengeState {
+        static final int CHALLENGE_TIMEOUT = 5;
+
+        private final Instant expiration;
+        public final byte[] data;
+
+        public ChallengeState(byte[] data) {
+            expiration = Instant.now().plusSeconds(CHALLENGE_TIMEOUT);
+            this.data = data;
+        }
+
+        public boolean isExpired() {
+            return Instant.now().isAfter(expiration);
+        }
+    }
 
 
+    private static final HashMap<UUID, ChallengeState> CHALLENGES = new HashMap<>();
 
     @Override
     public void onInitialize() {
