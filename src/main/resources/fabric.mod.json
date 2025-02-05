@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "mc-offline-auth",
+  "version": "${version}",
+  "name": "MCOfflineAuth",
+  "description": "Offline key-based authentication for Minecraft.",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/mcofflineauth/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "balls.jl.mcofflineauth.client.MCOfflineAuthClient"
+    ],
+    "main": [
+      "balls.jl.mcofflineauth.MCOfflineAuth"
+    ]
+  },
+  "mixins": [
+    "mcofflineauth.mixins.json",
+    {
+      "config": "mcofflineauth.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
