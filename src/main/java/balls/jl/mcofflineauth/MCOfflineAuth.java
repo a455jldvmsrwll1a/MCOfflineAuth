@@ -34,6 +34,7 @@ public class MCOfflineAuth implements ModInitializer {
         }
     }
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     private static final HashMap<UUID, ChallengeState> CHALLENGES = new HashMap<>();
 
