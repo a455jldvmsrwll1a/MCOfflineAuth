@@ -35,24 +35,24 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void registerEventCallbacks() {
         ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(MCOfflineAuth::onPreConfigure);
-        ServerConfigurationNetworking.registerGlobalReceiver(LoginResponsePayload.ID, MCOfflineAuth::onRecievedChallengeResponse);
+        ServerConfigurationNetworking.registerGlobalReceiver(LoginResponsePayload.ID, MCOfflineAuth::onReceivedChallengeResponse);
         ServerPlayConnectionEvents.JOIN.register(MCOfflineAuth::onPlayerJoin);
-        ServerPlayNetworking.registerGlobalReceiver(PubkeyBindPayload.ID, MCOfflineAuth::onRecievedClientBind);
+        ServerPlayNetworking.registerGlobalReceiver(PubkeyBindPayload.ID, MCOfflineAuth::onReceivedClientBind);
     }
 
     private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
         LOGGER.info("debug: onPreConfigure");
     }
 
-    private static void onRecievedChallengeResponse(LoginResponsePayload payload, ServerConfigurationNetworking.Context context) {
-        LOGGER.info("debug: onRecievedChallengeResponse");
+    private static void onReceivedChallengeResponse(LoginResponsePayload payload, ServerConfigurationNetworking.Context context) {
+        LOGGER.info("debug: onReceivedChallengeResponse");
     }
 
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         LOGGER.info("debug: onPlayerJoin");
     }
 
-    private static void onRecievedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
-        LOGGER.info("debug: onRecievedClientBind");
+    private static void onReceivedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
+        LOGGER.info("debug: onReceivedClientBind");
     }
 }
