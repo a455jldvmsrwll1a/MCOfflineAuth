@@ -5,7 +5,10 @@ import balls.jl.mcofflineauth.net.LoginResponsePayload;
 import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.*;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerConfigurationNetworkHandler;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +22,7 @@ public class MCOfflineAuth implements ModInitializer {
         LOGGER.info("Initialising MCOfflineAuth::Server. (on Fabric)");
 
         registerPacketPayloads();
+        registerEventCallbacks();
     }
 
     private static void registerPacketPayloads() {
@@ -27,5 +31,28 @@ public class MCOfflineAuth implements ModInitializer {
 
         PayloadTypeRegistry.playS2C().register(PubkeyQueryPayload.ID, PubkeyQueryPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PubkeyBindPayload.ID, PubkeyBindPayload.CODEC);
+    }
+
+    private static void registerEventCallbacks() {
+        ServerConfigurationConnectionEvents.BEFORE_CONFIGURE.register(MCOfflineAuth::onPreConfigure);
+        ServerConfigurationNetworking.registerGlobalReceiver(LoginResponsePayload.ID, MCOfflineAuth::onRecievedChallengeResponse);
+        ServerPlayConnectionEvents.JOIN.register(MCOfflineAuth::onPlayerJoin);
+        ServerPlayNetworking.registerGlobalReceiver(PubkeyBindPayload.ID, MCOfflineAuth::onRecievedClientBind);
+    }
+
+    private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
+        LOGGER.info("debug: onPreConfigure");
+    }
+
+    private static void onRecievedChallengeResponse(LoginResponsePayload payload, ServerConfigurationNetworking.Context context) {
+        LOGGER.info("debug: onRecievedChallengeResponse");
+    }
+
+    private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
+        LOGGER.info("debug: onPlayerJoin");
+    }
+
+    private static void onRecievedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
+        LOGGER.info("debug: onRecievedClientBind");
     }
 }
