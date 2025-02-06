@@ -10,11 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.security.PublicKey;
+import java.security.*;
 import java.util.HashMap;
 
-import static balls.jl.mcofflineauth.Constants.KEYS_PATH;
-import static balls.jl.mcofflineauth.Constants.MOD_DIR;
+import static balls.jl.mcofflineauth.Constants.*;
 
 public class AuthorisedKeys {
     public static final HashMap<String, PublicKey> KEYS = new HashMap<>();
@@ -111,5 +110,29 @@ public class AuthorisedKeys {
 
         write();
         return true;
+    }
+
+    /**
+     * Attempt to verify the signature against the given data and user's key.
+     *
+     * @param user      the user whose key will be used.
+     * @param data      the data to verify the signature for.
+     * @param signature the signature to verify.
+     * @return true if valid, false if not.
+     */
+    public static boolean verifySignature(String user, byte[] data, byte[] signature) {
+        try {
+            PublicKey publicKey = KEYS.get(user);
+            if (publicKey == null)
+                return false;
+
+            Signature sig = Signature.getInstance(ALGORITHM);
+            sig.initVerify(publicKey);
+            sig.update(data);
+
+            return sig.verify(signature);
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
