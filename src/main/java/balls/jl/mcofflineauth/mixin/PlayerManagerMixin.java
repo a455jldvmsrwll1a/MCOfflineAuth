@@ -2,6 +2,7 @@ package balls.jl.mcofflineauth.mixin;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.MCOfflineAuth;
+import balls.jl.mcofflineauth.ServerConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -24,7 +25,7 @@ public class PlayerManagerMixin {
 
     @Inject(method = "checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
     private void checkCanJoin(SocketAddress addr, GameProfile profile, CallbackInfoReturnable<Text> ret) {
-        if (!MCOfflineAuth.AUTH_ACTIVE) return;
+        if (!ServerConfig.isEnforcing()) return;
 
         String user = profile.getName();
         PlayerEntity existingPlayer = players.getPlayer(user);
