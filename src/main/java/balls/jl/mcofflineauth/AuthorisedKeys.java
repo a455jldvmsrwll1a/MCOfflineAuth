@@ -16,6 +16,12 @@ import java.util.HashMap;
 import static balls.jl.mcofflineauth.Constants.*;
 
 public class AuthorisedKeys {
+    enum BindResult {
+        INSERTED,
+        IDENTICAL,
+        REPLACED,
+    }
+
     public static final HashMap<String, PublicKey> KEYS = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
@@ -62,15 +68,16 @@ public class AuthorisedKeys {
         }
     }
 
-    /**
-     * Insert the user in the list.
-     *
-     * @param user       the username to bind the key to.
-     * @param encodedKey the public key to bind, encoded as a string.
-     * @return true if an old key was replaced, false if no key was present prior.
-     */
-    public static boolean insertUser(String user, String encodedKey) {
-        return KEYS.put(user, KeyEncode.decodePublic(encodedKey)) != null;
+    public static BindResult insertUser(String user, String encodedKey) {
+        PublicKey newKey = KeyEncode.decodePublic(encodedKey);
+        PublicKey oldKey = KEYS.put(user, newKey);
+
+        if (oldKey == null)
+            return BindResult.INSERTED;
+        else if (KeyEncode.encodePublic(oldKey).equals(encodedKey))
+            return BindResult.IDENTICAL;
+        else
+            return BindResult.REPLACED;
     }
 
     /**
@@ -82,15 +89,16 @@ public class AuthorisedKeys {
      * @return true if an old key was replaced, false if no key was present prior.
      */
     public static boolean bind(String user, String encodedKey, boolean announce) {
-        boolean replaced = insertUser(user, encodedKey);
+        BindResult result = insertUser(user, encodedKey);
 
         if (announce) {
-            if (replaced) LOGGER.info("User {} was assigned a new key.", user);
+            if (result == BindResult.REPLACED) LOGGER.info("User {} was assigned a new key.", user);
             else LOGGER.info("User {} was added to the key-pair listing.", user);
         }
 
-        write();
-        return replaced;
+        if (result != BindResult.IDENTICAL)
+            write();
+        return result == BindResult.REPLACED;
     }
 
     /**
