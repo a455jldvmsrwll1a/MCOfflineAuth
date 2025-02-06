@@ -77,8 +77,10 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
         server.execute(MCOfflineAuth::checkForExpiredChallenges);
-        if (!AUTH_ACTIVE || server.isSingleplayer())
+        if (!AUTH_ACTIVE || server.isSingleplayer()) {
+            LOGGER.warn("MCOfflineAuth is on standby; won't do anything here.");
             return;
+        }
 
         if (!ServerConfigurationNetworking.canSend(handler, LoginChallengePayload.ID)) {
             handler.onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
