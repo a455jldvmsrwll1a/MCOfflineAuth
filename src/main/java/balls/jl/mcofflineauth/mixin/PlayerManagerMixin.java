@@ -22,10 +22,6 @@ public class PlayerManagerMixin {
     @Unique
     private final PlayerManager players = (PlayerManager) (Object) this;
 
-    @Final
-    @Shadow
-    private MinecraftServer server;
-
     @Inject(method = "checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
     private void checkCanJoin(SocketAddress addr, GameProfile profile, CallbackInfoReturnable<Text> ret) {
         if (!MCOfflineAuth.AUTH_ACTIVE) return;
