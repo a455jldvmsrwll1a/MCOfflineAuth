@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static balls.jl.mcofflineauth.Constants.KEYS_PATH;
+import static balls.jl.mcofflineauth.Constants.MOD_DIR;
 
 public class MCOfflineAuth implements ModInitializer {
     class ChallengeState {
@@ -117,6 +118,7 @@ public class MCOfflineAuth implements ModInitializer {
      * */
     public static void writeAuthorisedKeys() {
         try {
+            Files.createDirectories(MOD_DIR);
             Files.writeString(KEYS_PATH, AuthorisedKeysSerialise.serialiseMap(AUTHORISED_KEYS));
             LOGGER.info("Wrote {} user-key pairs to disk.", AUTHORISED_KEYS.size());
         } catch (IOException e) {
