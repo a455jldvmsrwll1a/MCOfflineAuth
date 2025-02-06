@@ -60,10 +60,12 @@ public class ClientKeyPair {
             KeyPairGenerator generator = KeyPairGenerator.getInstance(ALGORITHM);
             KEY_PAIR = generator.generateKeyPair();
 
+            Files.createDirectories(MOD_DIR);
             Files.write(SEC_PATH, KEY_PAIR.getPrivate().getEncoded());
             Files.write(PUB_PATH, KEY_PAIR.getPublic().getEncoded());
 
             LOGGER.info("Successfully wrote key-pair to disk.");
+            MCOfflineAuthClient.SHOW_HELP_TOAST = true;
         } catch (NoSuchAlgorithmException | IOException e) {
             throw new RuntimeException(e);
         }
