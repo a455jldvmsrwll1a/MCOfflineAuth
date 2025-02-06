@@ -1,9 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "balls.jl.mcofflineauth.mixin.client",
+  "package": "balls.jl.mcofflineauth.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "TitleScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
