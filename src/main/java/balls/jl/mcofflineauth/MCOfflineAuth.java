@@ -53,6 +53,7 @@ public class MCOfflineAuth implements ModInitializer {
         registerPacketPayloads();
         registerEventCallbacks();
 
+        ServerConfig.read();
         AuthorisedKeys.read();
     }
 

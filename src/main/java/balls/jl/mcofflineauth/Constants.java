@@ -14,6 +14,7 @@ public class Constants {
 
     public static final Path GAME_DIR = FabricLoader.getInstance().getGameDir();
     public static final Path MOD_DIR = Paths.get(GAME_DIR.toString(), ".offline-auth");
+    public static final Path SERVER_CFG_PATH = Paths.get(MOD_DIR.toString(), "server.conf");
     public static final Path KEYS_PATH = Paths.get(MOD_DIR.toString(), "authorised-keys.json");
     public static final Path SEC_PATH = Paths.get(MOD_DIR.toString(), "secret-key");
     public static final Path PUB_PATH = Paths.get(MOD_DIR.toString(), "public-key");
