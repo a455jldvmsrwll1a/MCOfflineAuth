@@ -2,6 +2,7 @@ package balls.jl.mcofflineauth.command;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.Constants;
+import balls.jl.mcofflineauth.ServerConfig;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
-import static balls.jl.mcofflineauth.MCOfflineAuth.AUTH_ACTIVE;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -77,7 +77,7 @@ public class Commands {
             printModInfo(context);
             var src = context.getSource();
 
-            if (AUTH_ACTIVE) {
+            if (ServerConfig.isEnforcing()) {
                 if (src.isExecutedByPlayer())
                     src.sendFeedback(() -> Text.literal("Authentication: §a§lENFORCED§r"), false);
                 else src.sendFeedback(() -> Text.literal("Authentication: ENFORCED"), false);
@@ -115,11 +115,11 @@ public class Commands {
             KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
             return OK;
         })).then(literal("enable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-            if (AUTH_ACTIVE) {
+            if (ServerConfig.isEnforcing()) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already active.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-            AUTH_ACTIVE = true;
+            ServerConfig.setEnforcing(true);
             LOGGER.info("Offline Auth now enforcing.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ENFORCING.").formatted(Formatting.BLUE), true);
             return OK;
@@ -129,11 +129,11 @@ public class Commands {
             context.getSource().sendFeedback(() -> Text.literal("MCOA Database reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
         })).then(literal("disable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-            if (!AUTH_ACTIVE) {
+            if (!ServerConfig.isEnforcing()) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already inactive.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-            AUTH_ACTIVE = false;
+            ServerConfig.setEnforcing(false);
             LOGGER.warn("Offline auth now on standby.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ON STANDBY.").formatted(Formatting.DARK_RED), true);
             return OK;
