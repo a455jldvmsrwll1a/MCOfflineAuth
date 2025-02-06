@@ -117,25 +117,26 @@ public class Commands {
             KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
             return OK;
         })).then(literal("enable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-            if (ServerConfig.isEnforcing()) {
+            if (!ServerConfig.setEnforcing(true)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already active.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-            ServerConfig.setEnforcing(true);
+            ServerConfig.write();
             LOGGER.info("Offline Auth now enforcing.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ENFORCING.").formatted(Formatting.BLUE), true);
             return OK;
         })).then(literal("reload").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-            LOGGER.info("Reloading user-key listing from disk...");
+            LOGGER.info("Reloading user-key listing and config from disk...");
             AuthorisedKeys.read();
-            context.getSource().sendFeedback(() -> Text.literal("MCOA Database reloaded!.").formatted(Formatting.GRAY), true);
+            ServerConfig.read();
+            context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
         })).then(literal("disable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
-            if (!ServerConfig.isEnforcing()) {
+            if (!ServerConfig.setEnforcing(false)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already inactive.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-            ServerConfig.setEnforcing(false);
+            ServerConfig.write();
             LOGGER.warn("Offline auth now on standby.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ON STANDBY.").formatted(Formatting.DARK_RED), true);
             return OK;
@@ -207,6 +208,8 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Nothing changed.").formatted(Formatting.RED), false);
                 return FAIL;
             }
+
+            ServerConfig.write();
 
             if (allow)
                 context.getSource().sendFeedback(() -> Text.literal("Allowing unbound users.").formatted(Formatting.BLUE), true);
