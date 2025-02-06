@@ -1,13 +1,12 @@
 package balls.jl.mcofflineauth;
 
 import balls.jl.mcofflineauth.command.Commands;
-import balls.jl.mcofflineauth.net.LoginChallengePayload;
-import balls.jl.mcofflineauth.net.LoginResponsePayload;
-import balls.jl.mcofflineauth.net.PubkeyBindPayload;
-import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
+import balls.jl.mcofflineauth.net.*;
+import balls.jl.mcofflineauth.util.KeyEncode;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.*;
+import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -19,12 +18,14 @@ import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MCOfflineAuth implements ModInitializer {
-    class ChallengeState {
+    static class ChallengeState {
         static final int CHALLENGE_TIMEOUT = 5;
 
         private final Instant expiration;
@@ -75,14 +76,48 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
-        LOGGER.info("debug: onPreConfigure");
+        server.execute(MCOfflineAuth::checkForExpiredChallenges);
+        if (!AUTH_ACTIVE || server.isSingleplayer())
+            return;
+
+        if (!ServerConfigurationNetworking.canSend(handler, LoginChallengePayload.ID)) {
+            handler.onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
+            handler.disconnect(Text.of("Access denied. D:"));
+            return;
+        }
+
+        handler.addTask(new LoginTask());
+        LoginChallengePayload payload = spawnChallenge();
+        ServerConfigurationNetworking.send(handler, payload);
     }
 
     private static void onReceivedChallengeResponse(LoginResponsePayload payload, ServerConfigurationNetworking.Context context) {
-        LOGGER.info("debug: onReceivedChallengeResponse");
+        checkForExpiredChallenges();
+        context.networkHandler().completeTask(new LoginTask().getKey());
+
+        ChallengeState state = CHALLENGES.remove(payload.id);
+        if (state == null) {
+            context.networkHandler().disconnect(Text.of("Signature verification failed due to timeout. Please try again."));
+            return;
+        }
+
+        if (!AuthorisedKeys.KEYS.containsKey(payload.user)) {
+            // Skip verification for unbound usernames.
+            LOGGER.warn("Connecting user {} is not in the database.", payload.user);
+            return;
+        }
+
+        if (!AuthorisedKeys.verifySignature(payload.user, state.data, payload.signature)) {
+            context.networkHandler().disconnect(Text.of("Unable to verify your identity (incorrect signature); do you have the correct key?"));
+            return;
+        }
+
+        LOGGER.info("Verified {}'s identity successfully.", payload.user);
     }
 
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
+        server.execute(MCOfflineAuth::checkForExpiredChallenges);
+
         if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(handler.player.getName().getString())) {
             handler.player.sendMessage(Text.literal("Attention: this username is unclaimed!").formatted(Formatting.RED, Formatting.BOLD));
             handler.player.sendMessage(Text.literal("No key is bound to this username; anyone can join with this name."));
@@ -91,7 +126,40 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void onReceivedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
-        LOGGER.info("debug: onReceivedClientBind");
+        context.server().execute(() -> {
+            checkForExpiredChallenges();
+
+            if (!Objects.equals(payload.user, context.player().getName().getString())) {
+                LOGGER.warn("Public-key payload username \"{}\" does not match the user who sent it!", payload.user);
+                context.player().sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
+                return;
+            }
+
+            if (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true))
+                context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+            else
+                context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+        });
+    }
+
+    public static void checkForExpiredChallenges() {
+        CHALLENGES.forEach((uuid, state) -> {
+            if (state.isExpired())
+                    CHALLENGES.remove(uuid);
+        });
+    }
+
+    private static LoginChallengePayload spawnChallenge() {
+        SecureRandom rng = new SecureRandom();
+        UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
+
+        byte[] plainText = new byte[512];
+        rng.nextBytes(plainText);
+
+        LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText);
+        CHALLENGES.put(uuid, new ChallengeState(plainText));
+
+        return payload;
     }
 
     private static void showEscapeOfAccountability() {
