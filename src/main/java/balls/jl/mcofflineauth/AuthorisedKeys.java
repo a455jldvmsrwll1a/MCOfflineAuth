@@ -17,14 +17,22 @@ import static balls.jl.mcofflineauth.Constants.KEYS_PATH;
 import static balls.jl.mcofflineauth.Constants.MOD_DIR;
 
 public class AuthorisedKeys {
+    public static final HashMap<String, PublicKey> KEYS = new HashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
-    public static final HashMap<String, PublicKey> AUTHORISED_KEYS = new HashMap<>();
+    /**
+     * Number of entries in the list.
+     */
+    public static int count() {
+        return KEYS.size();
+    }
 
     /**
      * Read in the authorised keys list from disk.
-     * */
+     */
     public static void read() {
+        KEYS.clear();
+
         try {
             String jsonStr = Files.readString(KEYS_PATH);
             JsonArray pairs = JsonHelper.deserializeArray(jsonStr);
@@ -33,23 +41,23 @@ public class AuthorisedKeys {
                 String user = tuple.get("user").getAsString();
                 String key = tuple.get("key").getAsString();
 
-                // insertUserKey()
+                bind(user, key, false);
             });
         } catch (IOException e) {
             LOGGER.warn("Could not read authorised-keys.json file: {}", e.toString());
         }
 
-        LOGGER.info("Loaded {} user-key pairs.", AUTHORISED_KEYS.size());
+        LOGGER.info("Loaded {} user-key pairs.", KEYS.size());
     }
 
     /**
      * Write the authorised keys list to disk.
-     * */
+     */
     public static void write() {
         try {
             Files.createDirectories(MOD_DIR);
-            Files.writeString(KEYS_PATH, AuthorisedKeysSerialise.serialiseMap(AUTHORISED_KEYS));
-            LOGGER.info("Wrote {} user-key pairs to disk.", AUTHORISED_KEYS.size());
+            Files.writeString(KEYS_PATH, AuthorisedKeysSerialise.serialiseMap(KEYS));
+            LOGGER.info("Wrote {} user-key pairs to disk.", KEYS.size());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,40 +66,50 @@ public class AuthorisedKeys {
     /**
      * Binds the user to the specified key.
      *
-     * @param user          the username to bind the key to.
-     * @param encodedKey    the public key to bind, encoded as a string.
-     * @param announce      should this modification be logged?
-     * @return              true if an old key was replaced, false if no key was present prior.
-     * */
+     * @param user       the username to bind the key to.
+     * @param encodedKey the public key to bind, encoded as a string.
+     * @param announce   should this modification be logged?
+     * @return true if an old key was replaced, false if no key was present prior.
+     */
     public static boolean bind(String user, String encodedKey, boolean announce) {
         PublicKey key = KeyEncode.decodePublic(encodedKey);
-        boolean replaced = AUTHORISED_KEYS.put(user, key) != null;
+        boolean replaced = KEYS.put(user, key) != null;
 
         if (announce) {
-            if (replaced)
-                LOGGER.info("User {} was assigned a new key.", user);
-            else
-                LOGGER.info("User {} was added to the key-pair listing.", user);
+            if (replaced) LOGGER.info("User {} was assigned a new key.", user);
+            else LOGGER.info("User {} was added to the key-pair listing.", user);
         }
 
+        write();
         return replaced;
     }
 
     /**
      * Unbinds the specified user.
      *
-     * @param user          the username to unbind.
-     * @param announce      should this modification be logged?
-     * @return              true if there was such a user bound, false if there is none.
-     * */
+     * @param user     the username to unbind.
+     * @param announce should this modification be logged?
+     * @return true if there was such a user bound, false if there is none.
+     */
     public static boolean unbind(String user, boolean announce) {
-        if (!AUTHORISED_KEYS.containsKey(user))
-            return false;
-        AUTHORISED_KEYS.remove(user);
+        if (!KEYS.containsKey(user)) return false;
+        KEYS.remove(user);
 
-        if (announce)
-            LOGGER.info("User {} was removed from the key-pair listing.", user);
+        if (announce) LOGGER.info("User {} was removed from the key-pair listing.", user);
 
+        write();
+        return true;
+    }
+
+    /**
+     * Unbinds ALL known users.
+     */
+    public static boolean clear(boolean announce) {
+        KEYS.clear();
+
+        if (announce) LOGGER.info("ALL users were removed!");
+
+        write();
         return true;
     }
 }
