@@ -11,6 +11,11 @@ import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +82,11 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
-        LOGGER.info("debug: onPlayerJoin");
+        if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(handler.player.getName().getString())) {
+            handler.player.sendMessage(Text.literal("Attention: this username is unclaimed!").formatted(Formatting.RED, Formatting.BOLD));
+            handler.player.sendMessage(Text.literal("No key is bound to this username; anyone can join with this name."));
+            handler.player.sendMessage(Text.literal("§aClick this text or type \"§f/offauth bind§a\" to bind your key!§r").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/offauth bind"))));
+        }
     }
 
     private static void onReceivedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
