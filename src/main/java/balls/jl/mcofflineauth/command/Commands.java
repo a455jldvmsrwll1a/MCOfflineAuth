@@ -9,6 +9,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
@@ -44,31 +45,38 @@ public class Commands {
         return OK;
     }
 
-    private static int printPriveledgedHelp(CommandContext<ServerCommandSource> context) {
-        var src = context.getSource();
-        src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
-        src.sendFeedback(() -> Text.literal("/offauth info                      - Show information about MCOA."), false);
-        src.sendFeedback(() -> Text.literal("/offauth info <user>               - Show info about this <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth help                      - Show this help text."), false);
-        src.sendFeedback(() -> Text.literal("/offauth list                      - List known users."), false);
-        src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
-        src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
-        src.sendFeedback(() -> Text.literal("/offauth reload                    - Reload the authorised user list."), false);
-        src.sendFeedback(() -> Text.literal("/offauth bind                      - Bind your key to your user."), false);
-        src.sendFeedback(() -> Text.literal("/offauth bind <user> <key>         - Bind given <key> to <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth unbind <user>             - Unbind yourself, or the user <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth allowUnboundUsers <allow> - Set whether to allow users without a key bound."), false);
-        return OK;
-    }
-
     private static int printHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
+        boolean op = src.hasPermissionLevel(4);
+        boolean binding = op || Permissions.check(src, "mc-offline-auth.binding");
+        boolean config = op || Permissions.check(src, "mc-offline-auth.binding");
+        boolean privileged = binding || config;
+
         src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
-        src.sendFeedback(() -> Text.literal("/offauth info   - Show information about MCOA."), false);
-        src.sendFeedback(() -> Text.literal("/offauth help   - Show this help text."), false);
-        src.sendFeedback(() -> Text.literal("/offauth bind   - Bind your key to your user."), false);
-        src.sendFeedback(() -> Text.literal("/offauth unbind - Unbind yourself."), false);
-        src.sendFeedback(() -> Text.literal("Missing commands? Some of them are OP-only.").formatted(Formatting.GOLD), false);
+        src.sendFeedback(() -> Text.literal("/offauth info                      - Show information about MCOA."), false);
+        if (privileged)
+            src.sendFeedback(() -> Text.literal("/offauth info <user>               - Show info about this <user>."), false);
+        src.sendFeedback(() -> Text.literal("/offauth help                      - Show this help text."), false);
+        src.sendFeedback(() -> Text.literal("/offauth list                      - List known users."), false);
+        src.sendFeedback(() -> Text.literal("/offauth bind                      - Bind your key to your user."), false);
+        src.sendFeedback(() -> Text.literal("/offauth unbind                    - Unbind yourself, or the user <user>."), false);
+
+        if (binding) {
+            src.sendFeedback(() -> Text.literal("/offauth bind <user> <key>         - Bind given <key> to <user>."), false);
+            src.sendFeedback(() -> Text.literal("/offauth unbind <user>             - Unbind yourself, or the user <user>."), false);
+            src.sendFeedback(() -> Text.literal("/offauth reload                    - Reload the authorised user list."), false);
+        }
+
+        if (config) {
+            src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
+            src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
+            src.sendFeedback(() -> Text.literal("/offauth allowUnboundUsers <allow> - Set whether to allow users without a key bound."), false);
+        }
+
+        if (!op && (!binding || !config)) {
+            src.sendFeedback(() -> Text.literal("Missing commands? Some of them require special permissions.").formatted(Formatting.GOLD), false);
+        }
+
         return OK;
     }
 
@@ -94,7 +102,7 @@ public class Commands {
             else src.sendFeedback(() -> Text.literal("%s users in the database.".formatted(KEYS.size())), false);
 
             return OK;
-        }).then(argument("user", StringArgumentType.word()).requires(source -> source.hasPermissionLevel(4)).suggests(new PlayerSuggestions()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require("mc-offline-auth.binding", 4)).suggests(new PlayerSuggestions()).executes(context -> {
             var src = context.getSource();
             String user = StringArgumentType.getString(context, "user");
             var entry = KEYS.get(user);
@@ -109,14 +117,11 @@ public class Commands {
             }
 
             return OK;
-        }))).then(literal("help").executes(context -> {
-            if (context.getSource().hasPermissionLevel(4)) return printPriveledgedHelp(context);
-            else return printHelp(context);
-        })).then(literal("list").executes(context -> {
+        }))).then(literal("help").executes(Commands::printHelp)).then(literal("list").executes(context -> {
             context.getSource().sendFeedback(() -> Text.literal("%s known users:".formatted(KEYS.size())), false);
             KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
             return OK;
-        })).then(literal("enable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
+        })).then(literal("enable").requires(Permissions.require("mc-offline-auth.config", 4)).executes(context -> {
             if (!ServerConfig.setEnforcing(true)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already active.").formatted(Formatting.RED), false);
                 return FAIL;
@@ -125,13 +130,15 @@ public class Commands {
             LOGGER.info("Offline Auth now enforcing.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ENFORCING.").formatted(Formatting.BLUE), true);
             return OK;
-        })).then(literal("reload").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
+        })).then(literal("reload").requires(source -> {
+            return source.hasPermissionLevel(4) || Permissions.check(source, "mc-offline-auth.config") || Permissions.check(source, "mc-offline-auth.binding");
+        }).executes(context -> {
             LOGGER.info("Reloading user-key listing and config from disk...");
             AuthorisedKeys.read();
             ServerConfig.read();
             context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
-        })).then(literal("disable").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
+        })).then(literal("disable").requires(Permissions.require("mc-offline-auth.config", 4)).executes(context -> {
             if (!ServerConfig.setEnforcing(false)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already inactive.").formatted(Formatting.RED), false);
                 return FAIL;
@@ -150,7 +157,7 @@ public class Commands {
 
             ServerPlayNetworking.send(player, new PubkeyQueryPayload());
             return OK;
-        }).then(argument("user", StringArgumentType.word()).requires(source -> source.hasPermissionLevel(4)).suggests(new PlayerSuggestions()).then(argument("public-key", StringArgumentType.word()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require("mc-offline-auth.binding", 4)).suggests(new PlayerSuggestions()).then(argument("public-key", StringArgumentType.word()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
             String key = StringArgumentType.getString(context, "public-key");
             try {
@@ -180,7 +187,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("You haven't bound your key yet.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }).then(argument("user", StringArgumentType.word()).requires(source -> source.hasPermissionLevel(4)).suggests(new BoundPlayerSuggestions()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require("mc-offline-auth.binding", 4)).suggests(new BoundPlayerSuggestions()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
 
             if (Objects.equals(user, "--")) {
@@ -196,7 +203,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such user %s has a key bound.".formatted(user)).formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }))).then(literal("allowUnboundUsers").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
+        }))).then(literal("allowUnboundUsers").requires(Permissions.require("mc-offline-auth.config", 4)).executes(context -> {
             if (ServerConfig.allowsUnboundUsers())
                 context.getSource().sendFeedback(() -> Text.literal("Unbound users are allowed to join.").formatted(Formatting.GOLD), false);
             else
