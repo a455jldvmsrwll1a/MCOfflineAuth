@@ -15,13 +15,24 @@ public class KeyEncode {
         return BytesEncode.encode(key.getEncoded());
     }
 
-    /// Decodes base 64 as a public key.
+    /// Decodes a base 64 string as a public key.
     public static PublicKey decodePublic(String encoded) throws IllegalArgumentException {
         try {
             byte[] keyBytes = BytesEncode.decode(encoded);
             KeyFactory kf = KeyFactory.getInstance(Constants.ALGORITHM);
-            PublicKey key = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
-            return key;
+            return kf.generatePublic(new X509EncodedKeySpec(keyBytes));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e.getCause());
+        }
+    }
+
+    /// Decodes encoded bytes as a public key.
+    public static PublicKey decodePublic(byte[] encoded) throws IllegalArgumentException {
+        try {
+            KeyFactory kf = KeyFactory.getInstance(Constants.ALGORITHM);
+            return kf.generatePublic(new X509EncodedKeySpec(encoded));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         } catch (InvalidKeySpecException e) {
