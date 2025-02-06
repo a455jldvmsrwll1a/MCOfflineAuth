@@ -60,7 +60,7 @@ public class ModScreen extends Screen {
         context.drawText(this.textRenderer, "By JL :>", 15, 60 - this.textRenderer.fontHeight - 10, 0xFF85F1FF, true);
         context.drawText(this.textRenderer, "Allows servers to have some form of authentication without using", 15, 80 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
         context.drawText(this.textRenderer, "external authentication systems, lending itself to offline servers.", 15, 90 - this.textRenderer.fontHeight - 10, 0xFFFFFFFF, true);
-        context.drawText(this.textRenderer, "CAUTION: THIS MOD IS EXPERIMENTAL SOFTWARE, IT HAS NOT UNDERGONE ANY", 15, 105 - this.textRenderer.fontHeight - 10, 0xFFEB9B34, true);
+        context.drawText(this.textRenderer, "DISCLAIMER: THIS MOD IS EXPERIMENTAL SOFTWARE, IT HAS NOT UNDERGONE", 15, 105 - this.textRenderer.fontHeight - 10, 0xFFEB9B34, true);
         context.drawText(this.textRenderer, "EXTENSIVE TESTING. I AM NOT RESPONSIBLE FOR ANY GRIEFED SERVERS.", 15, 115 - this.textRenderer.fontHeight - 10, 0xFFEB9B34, true);
         context.drawText(this.textRenderer, "IT IS ALWAYS BETTER TO AVOID OFFLINE MODE IF POSSIBLE.", 15, 125 - this.textRenderer.fontHeight - 10, 0xFFEB9B34, true);
         context.drawText(this.textRenderer, "USE THIS MOD AT YOUR OWN RISK.", 15, 135 - this.textRenderer.fontHeight - 10, 0xFFEB9B34, true);
