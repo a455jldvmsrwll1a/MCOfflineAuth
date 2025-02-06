@@ -47,7 +47,6 @@ public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     public static boolean AUTH_ACTIVE = true;
-    public static HashMap<String, PublicKey> AUTHORISED_KEYS = new HashMap<>();
 
     private static final HashMap<UUID, ChallengeState> CHALLENGES = new HashMap<>();
 
@@ -58,7 +57,7 @@ public class MCOfflineAuth implements ModInitializer {
         registerPacketPayloads();
         registerEventCallbacks();
 
-        readAuthorisedKeys();
+        AuthorisedKeys.read();
     }
 
     private static void registerPacketPayloads() {
@@ -90,79 +89,5 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void onReceivedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
         LOGGER.info("debug: onReceivedClientBind");
-    }
-
-    /**
-     * Read in the authorised keys list from disk.
-     * */
-    public static void readAuthorisedKeys() {
-        try {
-            String jsonStr = Files.readString(KEYS_PATH);
-            JsonArray pairs = JsonHelper.deserializeArray(jsonStr);
-            pairs.forEach(pair -> {
-                JsonObject tuple = pair.getAsJsonObject();
-                String user = tuple.get("user").getAsString();
-                String key = tuple.get("key").getAsString();
-
-                // insertUserKey()
-            });
-        } catch (IOException e) {
-            LOGGER.warn("Could not read authorised-keys.json file: {}", e.toString());
-        }
-
-        LOGGER.info("Loaded {} user-key pairs.", AUTHORISED_KEYS.size());
-    }
-
-    /**
-     * Write the authorised keys list to disk.
-     * */
-    public static void writeAuthorisedKeys() {
-        try {
-            Files.createDirectories(MOD_DIR);
-            Files.writeString(KEYS_PATH, AuthorisedKeysSerialise.serialiseMap(AUTHORISED_KEYS));
-            LOGGER.info("Wrote {} user-key pairs to disk.", AUTHORISED_KEYS.size());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Binds the user to the specified key.
-     *
-     * @param user          the username to bind the key to.
-     * @param encodedKey    the public key to bind, encoded as a string.
-     * @param announce      should this modification be logged?
-     * @return              true if an old key was replaced, false if no key was present prior.
-     * */
-    public static boolean bindEncodedUserKey(String user, String encodedKey, boolean announce) {
-        PublicKey key = KeyEncode.decodePublic(encodedKey);
-        boolean replaced = AUTHORISED_KEYS.put(user, key) != null;
-
-        if (announce) {
-            if (replaced)
-                LOGGER.info("User {} was assigned a new key.", user);
-            else
-                LOGGER.info("User {} was added to the key-pair listing.", user);
-        }
-
-        return replaced;
-    }
-
-    /**
-     * Unbinds the specified user.
-     *
-     * @param user          the username to unbind.
-     * @param announce      should this modification be logged?
-     * @return              true if there was such a user bound, false if there is none.
-     * */
-    public static boolean unbindUserKey(String user, boolean announce) {
-        if (!AUTHORISED_KEYS.containsKey(user))
-            return false;
-        AUTHORISED_KEYS.remove(user);
-
-        if (announce)
-                LOGGER.info("User {} was removed from the key-pair listing.", user);
-
-        return true;
     }
 }
