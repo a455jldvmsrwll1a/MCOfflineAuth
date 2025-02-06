@@ -43,8 +43,6 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
-    public static boolean AUTH_ACTIVE = true;
-
     private static final HashMap<UUID, ChallengeState> CHALLENGES = new HashMap<>();
 
     @Override
@@ -77,7 +75,7 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
         server.execute(MCOfflineAuth::checkForExpiredChallenges);
-        if (!AUTH_ACTIVE || server.isSingleplayer()) {
+        if (!ServerConfig.isEnforcing() || server.isSingleplayer()) {
             LOGGER.warn("MCOfflineAuth is on standby; won't do anything here.");
             return;
         }
