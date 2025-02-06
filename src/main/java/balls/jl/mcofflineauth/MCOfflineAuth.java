@@ -1,31 +1,22 @@
 package balls.jl.mcofflineauth;
 
+import balls.jl.mcofflineauth.command.Commands;
 import balls.jl.mcofflineauth.net.LoginChallengePayload;
 import balls.jl.mcofflineauth.net.LoginResponsePayload;
 import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
-import balls.jl.mcofflineauth.util.AuthorisedKeysSerialise;
-import balls.jl.mcofflineauth.util.KeyEncode;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.security.PublicKey;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.UUID;
-
-import static balls.jl.mcofflineauth.Constants.KEYS_PATH;
-import static balls.jl.mcofflineauth.Constants.MOD_DIR;
 
 public class MCOfflineAuth implements ModInitializer {
     class ChallengeState {
@@ -73,6 +64,8 @@ public class MCOfflineAuth implements ModInitializer {
         ServerConfigurationNetworking.registerGlobalReceiver(LoginResponsePayload.ID, MCOfflineAuth::onReceivedChallengeResponse);
         ServerPlayConnectionEvents.JOIN.register(MCOfflineAuth::onPlayerJoin);
         ServerPlayNetworking.registerGlobalReceiver(PubkeyBindPayload.ID, MCOfflineAuth::onReceivedClientBind);
+
+        CommandRegistrationCallback.EVENT.register(Commands::register);
     }
 
     private static void onPreConfigure(ServerConfigurationNetworkHandler handler, MinecraftServer server) {
