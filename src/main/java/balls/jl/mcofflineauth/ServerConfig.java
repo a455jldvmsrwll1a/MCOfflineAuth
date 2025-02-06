@@ -2,7 +2,7 @@ package balls.jl.mcofflineauth;
 
 public class ServerConfig {
     private static boolean AUTH_ENFORCING = true;
-    private static boolean ALLOW_UNBOUND_USERS = false;
+    private static boolean ALLOW_UNBOUND_USERS = true;
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;

@@ -102,8 +102,14 @@ public class MCOfflineAuth implements ModInitializer {
         }
 
         if (!AuthorisedKeys.KEYS.containsKey(payload.user)) {
-            // Skip verification for unbound usernames.
             LOGGER.warn("Connecting user {} is not in the database.", payload.user);
+
+            // Skip verification for unbound usernames if it's allowed.
+            if (ServerConfig.allowsUnboundUsers())
+                return;
+
+            // Else, kick them.
+            context.networkHandler().disconnect(Text.of("You cannot join without being bound in advance. Contact a server admin to let you in."));
             return;
         }
 

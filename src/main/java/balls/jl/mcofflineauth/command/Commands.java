@@ -6,6 +6,7 @@ import balls.jl.mcofflineauth.ServerConfig;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -46,16 +47,17 @@ public class Commands {
     private static int printPriveledgedHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
         src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
-        src.sendFeedback(() -> Text.literal("/offauth info              - Show information about MCOA."), false);
-        src.sendFeedback(() -> Text.literal("/offauth info <user>       - Show info about this <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth help              - Show this help text."), false);
-        src.sendFeedback(() -> Text.literal("/offauth list              - List known users."), false);
-        src.sendFeedback(() -> Text.literal("/offauth enable            - Enable authentication."), false);
-        src.sendFeedback(() -> Text.literal("/offauth disable           - Disable authentication."), false);
-        src.sendFeedback(() -> Text.literal("/offauth reload            - Reload the authorised user list."), false);
-        src.sendFeedback(() -> Text.literal("/offauth bind              - Bind your key to your user."), false);
-        src.sendFeedback(() -> Text.literal("/offauth bind <user> <key> - Bind given <key> to <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth unbind <user>     - Unbind yourself, or the user <user>."), false);
+        src.sendFeedback(() -> Text.literal("/offauth info                      - Show information about MCOA."), false);
+        src.sendFeedback(() -> Text.literal("/offauth info <user>               - Show info about this <user>."), false);
+        src.sendFeedback(() -> Text.literal("/offauth help                      - Show this help text."), false);
+        src.sendFeedback(() -> Text.literal("/offauth list                      - List known users."), false);
+        src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
+        src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
+        src.sendFeedback(() -> Text.literal("/offauth reload                    - Reload the authorised user list."), false);
+        src.sendFeedback(() -> Text.literal("/offauth bind                      - Bind your key to your user."), false);
+        src.sendFeedback(() -> Text.literal("/offauth bind <user> <key>         - Bind given <key> to <user>."), false);
+        src.sendFeedback(() -> Text.literal("/offauth unbind <user>             - Unbind yourself, or the user <user>."), false);
+        src.sendFeedback(() -> Text.literal("/offauth allowUnboundUsers <allow> - Set whether to allow users without a key bound."), false);
         return OK;
     }
 
@@ -193,6 +195,24 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such user %s has a key bound.".formatted(user)).formatted(Formatting.RED), false);
                 return FAIL;
             }
+        }))).then(literal("allowUnboundUsers").requires(source -> source.hasPermissionLevel(4)).executes(context -> {
+            if (ServerConfig.allowsUnboundUsers())
+                context.getSource().sendFeedback(() -> Text.literal("Unbound users are allowed to join.").formatted(Formatting.GOLD), false);
+            else
+                context.getSource().sendFeedback(() -> Text.literal("Unbound users are prohibited from joining.").formatted(Formatting.DARK_BLUE), false);
+            return OK;
+        }).then(argument("allow", BoolArgumentType.bool()).executes(context -> {
+            boolean allow = BoolArgumentType.getBool(context, "allow");
+            if (!ServerConfig.setAllowUnboundUsers(allow)) {
+                context.getSource().sendFeedback(() -> Text.literal("Nothing changed.").formatted(Formatting.RED), false);
+                return FAIL;
+            }
+
+            if (allow)
+                context.getSource().sendFeedback(() -> Text.literal("Allowing unbound users.").formatted(Formatting.BLUE), true);
+            else
+                context.getSource().sendFeedback(() -> Text.literal("Prohibiting unbound users.").formatted(Formatting.BLUE), true);
+            return OK;
         }))));
     }
 }
