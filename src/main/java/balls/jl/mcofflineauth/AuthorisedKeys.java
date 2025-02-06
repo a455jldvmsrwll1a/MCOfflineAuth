@@ -40,7 +40,7 @@ public class AuthorisedKeys {
                 String user = tuple.get("user").getAsString();
                 String key = tuple.get("key").getAsString();
 
-                bind(user, key, false);
+                insertUser(user, key);
             });
         } catch (IOException e) {
             LOGGER.warn("Could not read authorised-keys.json file: {}", e.toString());
@@ -63,6 +63,17 @@ public class AuthorisedKeys {
     }
 
     /**
+     * Insert the user in the list.
+     *
+     * @param user       the username to bind the key to.
+     * @param encodedKey the public key to bind, encoded as a string.
+     * @return true if an old key was replaced, false if no key was present prior.
+     */
+    public static boolean insertUser(String user, String encodedKey) {
+        return KEYS.put(user, KeyEncode.decodePublic(encodedKey)) != null;
+    }
+
+    /**
      * Binds the user to the specified key.
      *
      * @param user       the username to bind the key to.
@@ -71,8 +82,7 @@ public class AuthorisedKeys {
      * @return true if an old key was replaced, false if no key was present prior.
      */
     public static boolean bind(String user, String encodedKey, boolean announce) {
-        PublicKey key = KeyEncode.decodePublic(encodedKey);
-        boolean replaced = KEYS.put(user, key) != null;
+        boolean replaced = insertUser(user, encodedKey);
 
         if (announce) {
             if (replaced) LOGGER.info("User {} was assigned a new key.", user);
