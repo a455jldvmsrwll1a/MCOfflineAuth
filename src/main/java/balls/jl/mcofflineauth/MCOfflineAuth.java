@@ -49,6 +49,7 @@ public class MCOfflineAuth implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initialising MCOfflineAuth::Server. (on Fabric)");
+        showEscapeOfAccountability();
 
         registerPacketPayloads();
         registerEventCallbacks();
@@ -91,5 +92,12 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void onReceivedClientBind(PubkeyBindPayload payload, ServerPlayNetworking.Context context) {
         LOGGER.info("debug: onReceivedClientBind");
+    }
+
+    private static void showEscapeOfAccountability() {
+        LOGGER.warn("DISCLAIMER: This mod is experimental software, it has not undergone");
+        LOGGER.warn("extensive testing. I am not responsible for any griefed servers.");
+        LOGGER.warn("It is always better to avoid offline mode if possible.");
+        LOGGER.warn("USE THIS SOFTWARE AT YOUR OWN RISK.");
     }
 }
