@@ -2,10 +2,17 @@
   "schemaVersion": 1,
   "id": "mc-offline-auth",
   "version": "${version}",
-  "name": "MCOfflineAuth",
-  "description": "Offline key-based authentication for Minecraft.",
-  "authors": [],
-  "contact": {},
+  "name": "MC Offline Auth",
+  "description": "Offline key-based authentication for Minecraft. Warning: experimental software.",
+  "authors": [
+    "JL"
+  ],
+  "contact": {
+    "email": "minelolpjl@gmail.com",
+    "homepage": "https://github.com/a455jldvmsrwll1a/MCOfflineAuth",
+    "issues": "https://github.com/a455jldvmsrwll1a/MCOfflineAuth/issues",
+    "sources": "https://github.com/a455jldvmsrwll1a/MCOfflineAuth"
+  },
   "license": "MIT",
   "icon": "assets/mcofflineauth/icon.png",
   "environment": "*",
@@ -15,6 +22,9 @@
     ],
     "main": [
       "balls.jl.mcofflineauth.MCOfflineAuth"
+    ],
+    "modmenu": [
+      "balls.jl.mcofflineauth.client.modmenu.ModMenuApiImpl"
     ]
   },
   "mixins": [
@@ -28,5 +38,16 @@
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
+  },
+  "recommends": {
+    "modmenu": ">=13.0.0"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.website": "https://github.com/a455jldvmsrwll1a/MCOfflineAuth"
+      },
+      "update_checker": false
+    }
   }
 }
