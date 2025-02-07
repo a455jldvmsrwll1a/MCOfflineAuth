@@ -5,7 +5,9 @@
 ---
 Basic authentication mod for servers.
 
-**Currently only Fabric is supported; this will hopefully change soon.**
+**Only [Fabric](https://fabricmc.net/) is supported here!**
+
+### Click here for the [forge version](https://github.com/a455jldvmsrwll1a/MCOfflineAuth4Forge).
 
 ## Dependencies
 
