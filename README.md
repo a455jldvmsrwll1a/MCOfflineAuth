@@ -1,5 +1,7 @@
 # MCOfflineAuth
 
+## WORK IN PROGRESS
+
 ![A screenshot.](res/screenshot.png)
 
 ---
