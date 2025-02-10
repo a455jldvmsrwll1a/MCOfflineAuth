@@ -123,6 +123,11 @@ public class MCOfflineAuth implements ModInitializer {
 
         @Override
         public boolean runTask(ServerConfigContext context) {
+            if (!ServerConfig.isEnforcing()) {
+                LOGGER.warn("MCOfflineAuth is on standby; won't do anything here.");
+                return false;
+            }
+
             if (!context.canSend(LoginChallengePayload.ID)) {
                 context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
                 context.handler().disconnect(Text.of("Access denied. D:"));
