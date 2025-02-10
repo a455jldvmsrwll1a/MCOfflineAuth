@@ -2,14 +2,14 @@ package balls.jl.mcofflineauth.util;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthorisedKeysSerialise {
     /**
      * Serialise a hash map of authorised keys as a JSON string.
      * */
-    public static String serialiseMap(HashMap<String, PublicKey> keys) {
+    public static String serialiseMap(ConcurrentHashMap<String, PublicKey> keys) {
         if (keys.isEmpty())
             return "[]\n";
 

@@ -27,14 +27,14 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
-    private static final HashMap<UUID, ChallengeState> CHALLENGES = new HashMap<>();
+    private static final ConcurrentHashMap<UUID, ChallengeState> CHALLENGES = new ConcurrentHashMap<>();
 
     @Override
     public void onInitialize() {
