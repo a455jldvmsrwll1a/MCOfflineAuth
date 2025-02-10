@@ -5,6 +5,11 @@ import balls.jl.mcofflineauth.net.LoginChallengePayload;
 import balls.jl.mcofflineauth.net.LoginResponsePayload;
 import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
+import lol.bai.badpackets.api.PacketReceiver;
+import lol.bai.badpackets.api.config.ClientConfigContext;
+import lol.bai.badpackets.api.config.ConfigPackets;
+import lol.bai.badpackets.api.play.ClientPlayContext;
+import lol.bai.badpackets.api.play.PlayPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -30,40 +35,48 @@ public class MCOfflineAuthClient implements ClientModInitializer {
     }
 
     private static void registerEventCallbacks() {
-        ClientPlayNetworking.registerGlobalReceiver(PubkeyQueryPayload.ID, MCOfflineAuthClient::onReceivedKeyQuery);
-        ClientConfigurationNetworking.registerGlobalReceiver(LoginChallengePayload.ID, MCOfflineAuthClient::onReceivedLoginChallenge);
+        ConfigPackets.registerClientReceiver(LoginChallengePayload.ID, new LoginChallengeReceiver());
+        PlayPackets.registerClientReceiver(PubkeyQueryPayload.ID, new PubkeyQueryReceiver());
     }
 
-    private static void onReceivedKeyQuery(PubkeyQueryPayload payload, ClientPlayNetworking.Context context) {
-        context.client().execute(() -> {
-            if (context.client().player != null) {
-                String user = context.client().player.getName().getString();
-                ClientPlayNetworking.send(new PubkeyBindPayload(user, ClientKeyPair.KEY_PAIR.getPublic()));
-            } else {
-                LOGGER.error("Failed to send public key to the server.");
-            }
-        });
+    static class LoginChallengeReceiver implements PacketReceiver<ClientConfigContext, LoginChallengePayload> {
+
+        @Override
+        public void receive(ClientConfigContext context, LoginChallengePayload payload) {
+            context.client().execute(() -> {
+                String name = context.client().getGameProfile().getName();
+                if (name == null) {
+                    LOGGER.error("Could not retrieve the username.");
+                    return;
+                }
+
+                try {
+                    Signature sig = Signature.getInstance(Constants.ALGORITHM);
+                    sig.initSign(ClientKeyPair.KEY_PAIR.getPrivate());
+                    sig.update(payload.data);
+
+                    context.send(new LoginResponsePayload(payload.id, name, sig.sign()));
+                } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
+                    throw new RuntimeException(e);
+                }
+
+            });
+        }
     }
 
-    private static void onReceivedLoginChallenge(LoginChallengePayload payload, ClientConfigurationNetworking.Context context) {
-        context.client().execute(() -> {
-            String name = context.client().getGameProfile().getName();
-            if (name == null) {
-                LOGGER.error("Could not retrieve the username.");
-                return;
-            }
+    static class PubkeyQueryReceiver implements PacketReceiver<ClientPlayContext, PubkeyQueryPayload> {
 
-            try {
-                Signature sig = Signature.getInstance(Constants.ALGORITHM);
-                sig.initSign(ClientKeyPair.KEY_PAIR.getPrivate());
-                sig.update(payload.data);
-
-                ClientConfigurationNetworking.send(new LoginResponsePayload(payload.id, name, sig.sign()));
-            } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
-                throw new RuntimeException(e);
-            }
-
-        });
+        @Override
+        public void receive(ClientPlayContext context, PubkeyQueryPayload payload) {
+            context.client().execute(() -> {
+                if (context.client().player != null) {
+                    String user = context.client().player.getName().getString();
+                    context.send(new PubkeyBindPayload(user, ClientKeyPair.KEY_PAIR.getPublic()));
+                } else {
+                    LOGGER.error("Failed to send public key to the server.");
+                }
+            });
+        }
     }
 }
 
