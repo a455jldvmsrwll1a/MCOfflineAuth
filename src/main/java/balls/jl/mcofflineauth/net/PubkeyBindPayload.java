@@ -30,13 +30,8 @@ public class PubkeyBindPayload implements CustomPayload  {
 
     public PubkeyBindPayload(RegistryByteBuf buf) {
         try {
-            ByteBuf keyBuf = buf.readBytes(PUBKEY_SIZE);
-            byte[] keyBytes = new byte[PUBKEY_SIZE];
-            for (int i = 0; i < PUBKEY_SIZE; ++i)
-                keyBytes[i] = keyBuf.readByte();
-
             KeyFactory kf = KeyFactory.getInstance(ALGORITHM);
-            publicKey = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
+            publicKey = kf.generatePublic(new X509EncodedKeySpec(buf.readByteArray()));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +42,7 @@ public class PubkeyBindPayload implements CustomPayload  {
     public void write(RegistryByteBuf buf) {
         byte[] keyBytes = publicKey.getEncoded();
         assert (keyBytes.length == PUBKEY_SIZE);
-        buf.writeBytes(keyBytes);
+        buf.writeByteArray(keyBytes);
         buf.writeString(user);
     }
 
