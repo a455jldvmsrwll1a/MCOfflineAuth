@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.*;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static balls.jl.mcofflineauth.Constants.*;
 
@@ -22,7 +22,7 @@ public class AuthorisedKeys {
         REPLACED,
     }
 
-    public static final HashMap<String, PublicKey> KEYS = new HashMap<>();
+    public static final ConcurrentHashMap<String, PublicKey> KEYS = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     /**
