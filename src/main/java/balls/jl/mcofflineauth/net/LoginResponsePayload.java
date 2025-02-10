@@ -28,18 +28,13 @@ public class LoginResponsePayload implements CustomPayload {
     public LoginResponsePayload(PacketByteBuf buf) {
         id = buf.readUuid();
         user = buf.readString();
-
-        int length = buf.readableBytes();
-        signature = new byte[length];
-
-        for (int i = 0; i < length; ++i)
-            signature[i] = buf.readByte();
+        signature = buf.readByteArray();
     }
 
     public void write(PacketByteBuf buf) {
         buf.writeUuid(id);
         buf.writeString(user);
-        buf.writeBytes(signature);
+        buf.writeByteArray(signature);
     }
 
     @Override
