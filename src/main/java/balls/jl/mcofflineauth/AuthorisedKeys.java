@@ -16,12 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static balls.jl.mcofflineauth.Constants.*;
 
 public class AuthorisedKeys {
-    enum BindResult {
-        INSERTED,
-        IDENTICAL,
-        REPLACED,
-    }
-
     public static final ConcurrentHashMap<String, PublicKey> KEYS = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
@@ -72,12 +66,9 @@ public class AuthorisedKeys {
         PublicKey newKey = KeyEncode.decodePublic(encodedKey);
         PublicKey oldKey = KEYS.put(user, newKey);
 
-        if (oldKey == null)
-            return BindResult.INSERTED;
-        else if (KeyEncode.encodePublic(oldKey).equals(encodedKey))
-            return BindResult.IDENTICAL;
-        else
-            return BindResult.REPLACED;
+        if (oldKey == null) return BindResult.INSERTED;
+        else if (KeyEncode.encodePublic(oldKey).equals(encodedKey)) return BindResult.IDENTICAL;
+        else return BindResult.REPLACED;
     }
 
     /**
@@ -96,8 +87,7 @@ public class AuthorisedKeys {
             else LOGGER.info("User {} was added to the key-pair listing.", user);
         }
 
-        if (result != BindResult.IDENTICAL)
-            write();
+        if (result != BindResult.IDENTICAL) write();
         return result == BindResult.REPLACED;
     }
 
@@ -140,8 +130,7 @@ public class AuthorisedKeys {
     public static boolean verifySignature(String user, byte[] data, byte[] signature) {
         try {
             PublicKey publicKey = KEYS.get(user);
-            if (publicKey == null)
-                return false;
+            if (publicKey == null) return false;
 
             Signature sig = Signature.getInstance(ALGORITHM);
             sig.initVerify(publicKey);
@@ -151,5 +140,9 @@ public class AuthorisedKeys {
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    enum BindResult {
+        INSERTED, IDENTICAL, REPLACED,
     }
 }

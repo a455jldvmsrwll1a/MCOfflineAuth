@@ -6,11 +6,11 @@ import net.minecraft.network.packet.CustomPayload;
 
 import java.util.UUID;
 
-import static balls.jl.mcofflineauth.Constants.*;
+import static balls.jl.mcofflineauth.Constants.LOGIN_RESPONSE_PACKET_ID;
 
 /**
  * Client's response to the server, providing the signature for the challenge data.
- * */
+ */
 public class LoginResponsePayload implements CustomPayload {
     public static final CustomPayload.Id<LoginResponsePayload> ID = new CustomPayload.Id<>(LOGIN_RESPONSE_PACKET_ID);
     public static final PacketCodec<PacketByteBuf, LoginResponsePayload> CODEC = PacketCodec.of(LoginResponsePayload::write, LoginResponsePayload::new);

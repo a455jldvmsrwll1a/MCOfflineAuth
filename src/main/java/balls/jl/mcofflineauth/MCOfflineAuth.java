@@ -1,7 +1,10 @@
 package balls.jl.mcofflineauth;
 
 import balls.jl.mcofflineauth.command.Commands;
-import balls.jl.mcofflineauth.net.*;
+import balls.jl.mcofflineauth.net.LoginChallengePayload;
+import balls.jl.mcofflineauth.net.LoginResponsePayload;
+import balls.jl.mcofflineauth.net.PubkeyBindPayload;
+import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import lol.bai.badpackets.api.PacketReceiver;
 import lol.bai.badpackets.api.config.ConfigPackets;
@@ -11,7 +14,8 @@ import lol.bai.badpackets.api.play.PlayPackets;
 import lol.bai.badpackets.api.play.ServerPlayContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.*;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -34,18 +38,6 @@ public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     private static final ConcurrentHashMap<UUID, ChallengeState> CHALLENGES = new ConcurrentHashMap<>();
-
-    @Override
-    public void onInitialize() {
-        LOGGER.info("Initialising MCOfflineAuth::Server. (on Fabric)");
-        showEscapeOfAccountability();
-
-        registerPacketPayloads();
-        registerEventCallbacks();
-
-        ServerConfig.read();
-        AuthorisedKeys.read();
-    }
 
     private static void registerPacketPayloads() {
         ConfigPackets.registerClientChannel(LoginChallengePayload.ID, LoginChallengePayload.CODEC);
@@ -78,8 +70,7 @@ public class MCOfflineAuth implements ModInitializer {
 
     public static void checkForExpiredChallenges() {
         CHALLENGES.forEach((uuid, state) -> {
-            if (state.isExpired())
-                    CHALLENGES.remove(uuid);
+            if (state.isExpired()) CHALLENGES.remove(uuid);
         });
     }
 
@@ -103,11 +94,22 @@ public class MCOfflineAuth implements ModInitializer {
         LOGGER.warn("USE THIS SOFTWARE AT YOUR OWN RISK.");
     }
 
+    @Override
+    public void onInitialize() {
+        LOGGER.info("Initialising MCOfflineAuth::Server. (on Fabric)");
+        showEscapeOfAccountability();
+
+        registerPacketPayloads();
+        registerEventCallbacks();
+
+        ServerConfig.read();
+        AuthorisedKeys.read();
+    }
+
     static class ChallengeState {
         static final int CHALLENGE_TIMEOUT = 5;
-
-        private final Instant expiration;
         public final byte[] data;
+        private final Instant expiration;
 
         public ChallengeState(byte[] data) {
             expiration = Instant.now().plusSeconds(CHALLENGE_TIMEOUT);
@@ -157,8 +159,7 @@ public class MCOfflineAuth implements ModInitializer {
                 LOGGER.warn("Connecting user {} is not in the database.", payload.user);
 
                 // Skip verification for unbound usernames if it's allowed.
-                if (ServerConfig.allowsUnboundUsers())
-                    return;
+                if (ServerConfig.allowsUnboundUsers()) return;
 
                 // Else, kick them.
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
