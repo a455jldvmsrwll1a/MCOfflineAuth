@@ -7,7 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 public class KeyEncode {
     /// Encode public key as URL-safe base 64 but without trailing '='.
