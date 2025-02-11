@@ -15,9 +15,9 @@ public class LoginResponsePayload implements CustomPayload {
     public static final CustomPayload.Id<LoginResponsePayload> ID = new CustomPayload.Id<>(LOGIN_RESPONSE_PACKET_ID);
     public static final PacketCodec<PacketByteBuf, LoginResponsePayload> CODEC = PacketCodec.of(LoginResponsePayload::write, LoginResponsePayload::new);
 
-    public UUID id;
-    public String user;
-    public byte[] signature;
+    public final UUID id;
+    public final String user;
+    public final byte[] signature;
 
     public LoginResponsePayload(UUID id, String user, byte[] signature) {
         this.id = id;
