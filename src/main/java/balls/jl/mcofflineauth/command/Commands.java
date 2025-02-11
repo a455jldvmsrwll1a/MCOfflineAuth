@@ -41,7 +41,7 @@ public class Commands {
             src.sendFeedback(() -> Text.literal("§d§kBALLS§r §lMC §b§lOffline Auth §f(§hFabric§f)§r §d§kBALLS§r"), false);
         else src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) ============="), false);
         src.sendFeedback(() -> Text.literal("Written by JL :>").formatted(Formatting.GREEN, Formatting.ITALIC), false);
-        src.sendFeedback(() -> Text.literal("Warning: this mod is alpha software. Please report any issues found.").formatted(Formatting.GOLD), false);
+        src.sendFeedback(() -> Text.literal("Warning: this mod is beta software. Please report any issues found.").formatted(Formatting.GOLD), false);
         src.sendFeedback(() -> Text.literal("Type '/offauth help' for available commands or '/offauth info' for mod status."), false);
         return OK;
     }
