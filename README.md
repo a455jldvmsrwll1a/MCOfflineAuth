@@ -86,7 +86,7 @@ The mod creates and uses files in its own `.offline-auth` directory, located wit
 
 The client will create and read the files `secret-key` and `public-key` to store the keypair.
 
-The server stores known users in `authorised-keys.json`, and its configuration in `server.conf`, of which there are only two settings at this time:
+The server stores known users in `authorised-keys.json`, and its configuration in `server.conf`:
 
 - **Boolean** `enforcing`
 
@@ -99,6 +99,16 @@ The server stores known users in `authorised-keys.json`, and its configuration i
   Decides whether users without a key bound prior to joining will be allowed in. If `false`, the server will kick users not in `authorised-keys.json`. A server admin will have to bind users' keys in advance.
 
   Can be set in the console with `/offauth allowUnboundUsers <true|false>` (requires permission `mc-offline-auth.config`).
+
+  Users can temporarily be exempt from this when they unbind or using `/offauth grace <user>` (requires permission `mc-offline-auth.binding`).
+
+- **Unsigned Integer** `unbound_user_grace_period`
+
+  If `allow_unbound_users` is false, how long to let users join after unbinding, expressed in seconds.
+
+- **String** `msg.*`
+
+  User-editable messages.
 
 ## Licence
 
