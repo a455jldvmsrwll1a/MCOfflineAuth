@@ -50,7 +50,7 @@ public class Commands {
         var src = context.getSource();
         boolean op = src.hasPermissionLevel(4);
         boolean binding = op || Permissions.check(src, "mc-offline-auth.binding");
-        boolean config = op || Permissions.check(src, "mc-offline-auth.binding");
+        boolean config = op || Permissions.check(src, "mc-offline-auth.config");
         boolean privileged = binding || config;
 
         src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
