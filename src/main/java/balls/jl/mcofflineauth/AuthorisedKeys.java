@@ -77,9 +77,9 @@ public class AuthorisedKeys {
      * @param user       the username to bind the key to.
      * @param encodedKey the public key to bind, encoded as a string.
      * @param announce   should this modification be logged?
-     * @return true if an old key was replaced, false if no key was present prior.
+     * @return what happened to the key?
      */
-    public static boolean bind(String user, String encodedKey, boolean announce) {
+    public static BindResult bind(String user, String encodedKey, boolean announce) {
         BindResult result = insertUser(user, encodedKey);
 
         if (announce) {
@@ -88,7 +88,7 @@ public class AuthorisedKeys {
         }
 
         if (result != BindResult.IDENTICAL) write();
-        return result == BindResult.REPLACED;
+        return result;
     }
 
     /**
@@ -142,7 +142,7 @@ public class AuthorisedKeys {
         }
     }
 
-    enum BindResult {
+    public enum BindResult {
         INSERTED, IDENTICAL, REPLACED,
     }
 }

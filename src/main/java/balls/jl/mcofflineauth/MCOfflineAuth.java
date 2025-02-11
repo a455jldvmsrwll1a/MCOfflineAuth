@@ -193,10 +193,17 @@ public class MCOfflineAuth implements ModInitializer {
                     return;
                 }
 
-                if (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true))
-                    context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
-                else
-                    context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+                switch (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true)) {
+                    case INSERTED -> {
+                        context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+                    }
+                    case IDENTICAL -> {
+                        context.player().sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
+                    }
+                    case REPLACED -> {
+                        context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+                    }
+                }
             });
         }
     }
