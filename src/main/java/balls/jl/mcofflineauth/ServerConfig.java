@@ -15,7 +15,7 @@ public class ServerConfig {
 
     private static boolean AUTH_ENFORCING = true;
     private static boolean ALLOW_UNBOUND_USERS = true;
-    private static HashMap<String, String> MESSAGES = new HashMap<>();
+    private static final HashMap<String, String> MESSAGES = new HashMap<>();
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;

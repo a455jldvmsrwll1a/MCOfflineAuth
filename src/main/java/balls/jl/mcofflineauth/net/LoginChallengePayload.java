@@ -15,8 +15,8 @@ public class LoginChallengePayload implements CustomPayload {
     public static final CustomPayload.Id<LoginChallengePayload> ID = new CustomPayload.Id<>(LOGIN_CHALLENGE_PACKET_ID);
     public static final PacketCodec<PacketByteBuf, LoginChallengePayload> CODEC = PacketCodec.of(LoginChallengePayload::write, LoginChallengePayload::new);
 
-    public UUID id;
-    public byte[] data;
+    public final UUID id;
+    public final byte[] data;
 
     public LoginChallengePayload(UUID id, byte[] data) {
         this.id = id;
