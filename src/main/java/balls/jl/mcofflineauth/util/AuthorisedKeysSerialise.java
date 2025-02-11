@@ -8,10 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthorisedKeysSerialise {
     /**
      * Serialise a hash map of authorised keys as a JSON string.
-     * */
+     */
     public static String serialiseMap(ConcurrentHashMap<String, PublicKey> keys) {
-        if (keys.isEmpty())
-            return "[]\n";
+        if (keys.isEmpty()) return "[]\n";
 
         ArrayList<Map.Entry<String, PublicKey>> arr = new ArrayList<>(keys.entrySet());
         int length = arr.size();
@@ -24,8 +23,7 @@ public class AuthorisedKeysSerialise {
             sb.append("        \"user\": \"%s\",\n".formatted(arr.get(i).getKey()));
             sb.append("        \"key\": \"%s\"\n".formatted(KeyEncode.encodePublic(arr.get(i).getValue())));
             sb.append("    }");
-            if (i != length - 1)
-                sb.append(',');
+            if (i != length - 1) sb.append(',');
             sb.append('\n');
         }
 

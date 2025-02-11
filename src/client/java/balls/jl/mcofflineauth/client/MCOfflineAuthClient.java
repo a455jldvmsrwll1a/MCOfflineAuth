@@ -24,17 +24,17 @@ public class MCOfflineAuthClient implements ClientModInitializer {
 
     public static boolean SHOW_HELP_TOAST;
 
+    private static void registerEventCallbacks() {
+        ConfigPackets.registerClientReceiver(LoginChallengePayload.ID, new LoginChallengeReceiver());
+        PlayPackets.registerClientReceiver(PubkeyQueryPayload.ID, new PubkeyQueryReceiver());
+    }
+
     @Override
     public void onInitializeClient() {
         LOGGER.info("Initialising MCOfflineAuth::Client. (on Fabric)");
 
         registerEventCallbacks();
         ClientKeyPair.loadOrCreate();
-    }
-
-    private static void registerEventCallbacks() {
-        ConfigPackets.registerClientReceiver(LoginChallengePayload.ID, new LoginChallengeReceiver());
-        PlayPackets.registerClientReceiver(PubkeyQueryPayload.ID, new PubkeyQueryReceiver());
     }
 
     static class LoginChallengeReceiver implements PacketReceiver<ClientConfigContext, LoginChallengePayload> {

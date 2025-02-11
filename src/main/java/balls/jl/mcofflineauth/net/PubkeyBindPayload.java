@@ -14,8 +14,8 @@ import static balls.jl.mcofflineauth.Constants.*;
 
 /**
  * Tells the server to bind the given public key with the user.
- * */
-public class PubkeyBindPayload implements CustomPayload  {
+ */
+public class PubkeyBindPayload implements CustomPayload {
     public static final CustomPayload.Id<PubkeyBindPayload> ID = new CustomPayload.Id<>(PUBKEY_BIND_PACKET_ID);
     public static final PacketCodec<RegistryByteBuf, PubkeyBindPayload> CODEC = PacketCodec.of(PubkeyBindPayload::write, PubkeyBindPayload::new);
 
