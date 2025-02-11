@@ -66,6 +66,7 @@ public class Commands {
             src.sendFeedback(() -> Text.literal("/offauth bind <user> <key>         - Bind given <key> to <user>."), false);
             src.sendFeedback(() -> Text.literal("/offauth unbind <user>             - Unbind yourself, or the user <user>."), false);
             src.sendFeedback(() -> Text.literal("/offauth reload                    - Reload the authorised user list."), false);
+            src.sendFeedback(() -> Text.literal("/offauth grace <user>              - Allow <user> to join without a key."), false);
         }
 
         if (config) {
