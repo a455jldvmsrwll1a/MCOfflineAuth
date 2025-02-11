@@ -14,6 +14,7 @@ import lol.bai.badpackets.api.play.PlayPackets;
 import lol.bai.badpackets.api.play.ServerPlayContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.DisconnectionInfo;
@@ -55,10 +56,11 @@ public class MCOfflineAuth implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register(MCOfflineAuth::onPlayerJoin);
 
         CommandRegistrationCallback.EVENT.register(Commands::register);
+
+        ServerTickEvents.END_SERVER_TICK.register(MCOfflineAuth::onServerTickFinished);
     }
 
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
-        server.execute(MCOfflineAuth::checkForExpiredChallenges);
         ServerPlayerEntity player = handler.getPlayer();
 
         if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(player.getName().getString())) {
@@ -68,10 +70,8 @@ public class MCOfflineAuth implements ModInitializer {
         }
     }
 
-    public static void checkForExpiredChallenges() {
-        CHALLENGES.forEach((uuid, state) -> {
-            if (state.isExpired()) CHALLENGES.remove(uuid);
-        });
+    private static void onServerTickFinished(MinecraftServer server) {
+        CHALLENGES.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 
     private static LoginChallengePayload spawnChallenge() {
@@ -146,7 +146,6 @@ public class MCOfflineAuth implements ModInitializer {
 
         @Override
         public void receive(ServerConfigContext context, LoginResponsePayload payload) {
-            checkForExpiredChallenges();
             context.finishTask(Constants.LOGIN_TASK);
 
             ChallengeState state = CHALLENGES.remove(payload.id);
@@ -180,8 +179,6 @@ public class MCOfflineAuth implements ModInitializer {
         @Override
         public void receive(ServerPlayContext context, PubkeyBindPayload payload) {
             context.server().execute(() -> {
-                checkForExpiredChallenges();
-
                 if (!Objects.equals(payload.user, context.player().getName().getString())) {
                     LOGGER.warn("Public-key payload username \"{}\" does not match the user who sent it!", payload.user);
                     context.player().sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
