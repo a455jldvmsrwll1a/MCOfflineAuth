@@ -11,8 +11,6 @@ import lol.bai.badpackets.api.config.ConfigPackets;
 import lol.bai.badpackets.api.play.ClientPlayContext;
 import lol.bai.badpackets.api.play.PlayPackets;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
