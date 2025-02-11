@@ -69,6 +69,9 @@ public class MCOfflineAuth implements ModInitializer {
             ServerConfig.print("noKeyBannerHeader", (msg) -> player.sendMessage(Text.of(msg)));
             ServerConfig.print("noKeyBannerInfo", (msg) -> player.sendMessage(Text.of(msg)));
             ServerConfig.print("noKeyBannerHint", (msg) -> player.sendMessage(Text.literal(msg).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/offauth bind")))));
+
+            if (!ServerConfig.allowsUnboundUsers() && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
+                ServerConfig.print("noKeyGrace", (msg) -> player.sendMessage(Text.of(msg)));
         }
     }
 
