@@ -20,6 +20,10 @@ public class ConfigSerialise {
         if (ServerConfig.allowsUnboundUsers()) sb.append("allow_unbound_users = true\n");
         else sb.append("allow_unbound_users = false\n");
 
+        sb.append("unbound_user_grace_period = ");
+        sb.append(ServerConfig.getUnboundUserGracePeriod());
+        sb.append('\n');
+
         ServerConfig.messages().forEach((id, msg) -> sb.append("%s%s = %s\n".formatted(MESSAGE_ID_PREFIX, id, msg)));
 
         return sb.toString();
@@ -29,7 +33,9 @@ public class ConfigSerialise {
         contents.lines().forEach(line -> {
             if (line.startsWith("#")) return;
 
+            // not quite ideal code
             if (line.startsWith(MESSAGE_ID_PREFIX)) deserialiseStringConfig(line);
+            else if (line.startsWith("unbound_user_grace_period")) deserialiseIntConfig(line);
             else deserialiseBoolConfig(line);
         });
     }
@@ -62,6 +68,32 @@ public class ConfigSerialise {
             ServerConfig.setAllowUnboundUsers(value);
         } else {
             LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
+        }
+    }
+
+    private static void deserialiseIntConfig(String line) {
+        String[] tokens = line.strip().split("\\s+");
+        if (tokens.length != 3) {
+            LOGGER.error("Config line has invalid number of tokens: \"{}\".", line);
+            return;
+        }
+
+        if (!Objects.equals(tokens[1], "=")) {
+            LOGGER.error("Config line is invalid: \"{}\".", line);
+            return;
+        }
+
+        try {
+            int value = Integer.parseInt(tokens[2]);
+            if (value < 0) throw new IllegalArgumentException("Negative values are not valid in this context.");
+
+            if (Objects.equals(tokens[0], "unbound_user_grace_period")) {
+                ServerConfig.setUnboundUserGracePeriod(value);
+            } else {
+                LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Config line has invalid value \"{}\" in \"{}\": {}", tokens[2], line, e.getCause());
         }
     }
 

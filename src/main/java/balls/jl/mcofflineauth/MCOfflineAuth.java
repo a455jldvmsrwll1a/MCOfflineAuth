@@ -40,6 +40,8 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static final ConcurrentHashMap<UUID, ChallengeState> CHALLENGES = new ConcurrentHashMap<>();
 
+    public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
+
     private static void registerPacketPayloads() {
         ConfigPackets.registerClientChannel(LoginChallengePayload.ID, LoginChallengePayload.CODEC);
         ConfigPackets.registerServerChannel(LoginResponsePayload.ID, LoginResponsePayload.CODEC);
@@ -77,6 +79,8 @@ public class MCOfflineAuth implements ModInitializer {
             if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.debug, entry.getKey());
             return expired;
         });
+
+        UNBOUND_USER_GRACES.removeExpired();
     }
 
     private static LoginChallengePayload spawnChallenge(String debug) {
@@ -167,6 +171,11 @@ public class MCOfflineAuth implements ModInitializer {
 
                 // Skip verification for unbound usernames if it's allowed.
                 if (ServerConfig.allowsUnboundUsers()) return;
+
+                if (UNBOUND_USER_GRACES.isHeld(payload.user)) {
+                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", payload.user);
+                    return;
+                }
 
                 // Else, kick them.
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));

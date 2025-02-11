@@ -15,6 +15,7 @@ public class ServerConfig {
     private static final HashMap<String, String> MESSAGES = new HashMap<>();
     private static boolean AUTH_ENFORCING = true;
     private static boolean ALLOW_UNBOUND_USERS = true;
+    private static int UNBOUND_USER_GRACE_PERIOD = 300;
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;
@@ -22,6 +23,10 @@ public class ServerConfig {
 
     public static boolean allowsUnboundUsers() {
         return ALLOW_UNBOUND_USERS;
+    }
+
+    public static int getUnboundUserGracePeriod() {
+        return UNBOUND_USER_GRACE_PERIOD;
     }
 
     public static String message(String id) {
@@ -57,6 +62,10 @@ public class ServerConfig {
 
     public static void clearMessage(String id) {
         MESSAGES.remove(id);
+    }
+
+    public static void setUnboundUserGracePeriod(int seconds) {
+        UNBOUND_USER_GRACE_PERIOD = seconds;
     }
 
     public static void read() {
