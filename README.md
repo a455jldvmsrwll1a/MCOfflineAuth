@@ -11,7 +11,7 @@ Basic authentication mod for servers.
 
 ## Dependencies
 
-- [Minecraft 1.21.4](www.minecraft.net)
+- [Minecraft 1.21.4](https://www.minecraft.net)
 - [Fabric 0.16.9](https://fabricmc.net/) or later.
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - **[Optional]** [ModMenu](https://modrinth.com/mod/modmenu) 13.0.0 or later.
