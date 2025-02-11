@@ -2,6 +2,7 @@ package balls.jl.mcofflineauth.command;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.Constants;
+import balls.jl.mcofflineauth.MCOfflineAuth;
 import balls.jl.mcofflineauth.ServerConfig;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
@@ -188,8 +189,12 @@ public class Commands {
                 return FAIL;
             }
 
-            if (AuthorisedKeys.unbind(player.getName().getString(), true)) {
+            String user = player.getName().getString();
+            if (AuthorisedKeys.unbind(user, true)) {
+                MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
                 context.getSource().sendFeedback(() -> Text.literal("Unbound your key.").formatted(Formatting.GREEN), true);
+                if (!ServerConfig.allowsUnboundUsers())
+                    context.getSource().sendFeedback(() -> Text.literal("The server will kick users without a key, but you have a %ss grace period to bind again.".formatted(ServerConfig.getUnboundUserGracePeriod())).formatted(Formatting.GOLD), false);
                 return OK;
             } else {
                 context.getSource().sendFeedback(() -> Text.literal("You haven't bound your key yet.").formatted(Formatting.RED), false);
@@ -201,11 +206,16 @@ public class Commands {
             if (Objects.equals(user, "--")) {
                 AuthorisedKeys.clear(true);
                 context.getSource().sendFeedback(() -> Text.literal("Unbound ALL users!").formatted(Formatting.GREEN, Formatting.BOLD), true);
+                if (!ServerConfig.allowsUnboundUsers())
+                    context.getSource().sendFeedback(() -> Text.literal("Note: unbind grace periods do not apply here.").formatted(Formatting.GOLD), false);
                 return OK;
             }
 
             if (AuthorisedKeys.unbind(user, true)) {
+                MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
                 context.getSource().sendFeedback(() -> Text.literal("Unbound user %s.".formatted(user)).formatted(Formatting.GREEN), true);
+                if (!ServerConfig.allowsUnboundUsers())
+                    context.getSource().sendFeedback(() -> Text.literal("Note: there is a %ss grace period where user %s can still join.".formatted(ServerConfig.getUnboundUserGracePeriod(), user)).formatted(Formatting.GOLD), false);
                 return OK;
             } else {
                 context.getSource().sendFeedback(() -> Text.literal("No such user %s has a key bound.".formatted(user)).formatted(Formatting.RED), false);
