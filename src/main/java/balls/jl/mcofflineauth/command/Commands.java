@@ -241,6 +241,15 @@ public class Commands {
             else
                 context.getSource().sendFeedback(() -> Text.literal("Prohibiting unbound users.").formatted(Formatting.BLUE), true);
             return OK;
+        }))).then(literal("grace").requires(Permissions.require("mc-offline-auth.binding", 4)).then(argument("user", StringArgumentType.word()).suggests(new BoundPlayerSuggestions()).executes(context -> {
+            String user = StringArgumentType.getString(context, "user");
+            MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
+            if (Objects.equals(user, "--"))
+                context.getSource().sendFeedback(() -> Text.literal("Set grace period of %ss.".formatted(ServerConfig.getUnboundUserGracePeriod())).formatted(Formatting.GREEN), true);
+            else
+                context.getSource().sendFeedback(() -> Text.literal("Set grace period of %ss for user %s.".formatted(ServerConfig.getUnboundUserGracePeriod(), user)).formatted(Formatting.GREEN), true);
+
+            return OK;
         }))));
     }
 }
