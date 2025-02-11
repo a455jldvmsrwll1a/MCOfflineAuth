@@ -17,6 +17,7 @@ import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConfigurationNetworkHandler;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
@@ -68,11 +69,12 @@ public class MCOfflineAuth implements ModInitializer {
 
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         server.execute(MCOfflineAuth::checkForExpiredChallenges);
+        ServerPlayerEntity player = handler.getPlayer();
 
-        if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(handler.player.getName().getString())) {
-            handler.player.sendMessage(Text.literal("Attention: this username is unclaimed!").formatted(Formatting.RED, Formatting.BOLD));
-            handler.player.sendMessage(Text.literal("No key is bound to this username; anyone can join with this name."));
-            handler.player.sendMessage(Text.literal("§aClick this text or type \"§f/offauth bind§a\" to bind your key!§r").setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/offauth bind"))));
+        if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(player.getName().getString())) {
+            ServerConfig.print("noKeyBannerHeader", (msg) -> player.sendMessage(Text.of(msg)));
+            ServerConfig.print("noKeyBannerInfo", (msg) -> player.sendMessage(Text.of(msg)));
+            ServerConfig.print("noKeyBannerHint", (msg) -> player.sendMessage(Text.literal(msg).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/offauth bind")))));
         }
     }
 
@@ -130,7 +132,7 @@ public class MCOfflineAuth implements ModInitializer {
 
             if (!context.canSend(LoginChallengePayload.ID)) {
                 context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
-                context.handler().disconnect(Text.of("Access denied. D:"));
+                context.handler().disconnect(Text.of(ServerConfig.message("accessDenied")));
                 return false;
             }
 
@@ -149,7 +151,7 @@ public class MCOfflineAuth implements ModInitializer {
 
             ChallengeState state = CHALLENGES.remove(payload.id);
             if (state == null) {
-                context.handler().disconnect(Text.of("Signature verification failed due to timeout. Please try again."));
+                context.handler().disconnect(Text.of(ServerConfig.message("timeout")));
                 return;
             }
 
@@ -161,12 +163,12 @@ public class MCOfflineAuth implements ModInitializer {
                     return;
 
                 // Else, kick them.
-                context.handler().disconnect(Text.of("You cannot join without being bound in advance. Contact a server admin to let you in."));
+                context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
                 return;
             }
 
             if (!AuthorisedKeys.verifySignature(payload.user, state.data, payload.signature)) {
-                context.handler().disconnect(Text.of("Unable to verify your identity (incorrect signature); do you have the correct key?"));
+                context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
 
