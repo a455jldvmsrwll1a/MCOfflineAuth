@@ -121,13 +121,12 @@ public class AuthorisedKeys {
     /**
      * Unbinds ALL known users.
      */
-    public static boolean clear(boolean announce) {
+    public static void clear(boolean announce) {
         KEYS.clear();
 
         if (announce) LOGGER.info("ALL users were removed!");
 
         write();
-        return true;
     }
 
     /**
