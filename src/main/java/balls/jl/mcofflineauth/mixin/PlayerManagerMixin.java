@@ -1,16 +1,12 @@
 package balls.jl.mcofflineauth.mixin;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
-import balls.jl.mcofflineauth.MCOfflineAuth;
 import balls.jl.mcofflineauth.ServerConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
