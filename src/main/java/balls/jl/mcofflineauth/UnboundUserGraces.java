@@ -11,7 +11,7 @@ public  class UnboundUserGraces {
     }
 
     public boolean isHeld(String user) {
-        return graces.containsKey(user);
+        return graces.containsKey(user) || graces.containsKey("--");
     }
 
     public void removeExpired() {
