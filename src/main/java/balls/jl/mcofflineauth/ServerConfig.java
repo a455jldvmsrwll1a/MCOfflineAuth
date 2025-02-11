@@ -12,10 +12,9 @@ import java.util.function.Consumer;
 
 public class ServerConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
-
+    private static final HashMap<String, String> MESSAGES = new HashMap<>();
     private static boolean AUTH_ENFORCING = true;
     private static boolean ALLOW_UNBOUND_USERS = true;
-    private static final HashMap<String, String> MESSAGES = new HashMap<>();
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;
@@ -35,21 +34,18 @@ public class ServerConfig {
 
     public static void print(String id, Consumer<String> callback) {
         String message = MESSAGES.get(id);
-        if (message != null && !message.isBlank())
-            callback.accept(message);
+        if (message != null && !message.isBlank()) callback.accept(message);
     }
 
     public static boolean setEnforcing(boolean enforce) {
-        if (AUTH_ENFORCING == enforce)
-            return false;
+        if (AUTH_ENFORCING == enforce) return false;
 
         AUTH_ENFORCING = enforce;
         return true;
     }
 
     public static boolean setAllowUnboundUsers(boolean allow) {
-        if (ALLOW_UNBOUND_USERS == allow)
-            return false;
+        if (ALLOW_UNBOUND_USERS == allow) return false;
 
         ALLOW_UNBOUND_USERS = allow;
         return true;
