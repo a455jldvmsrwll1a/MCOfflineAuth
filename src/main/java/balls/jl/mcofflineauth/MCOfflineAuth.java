@@ -74,7 +74,7 @@ public class MCOfflineAuth implements ModInitializer {
         CHALLENGES.entrySet().removeIf(entry -> {
             ChallengeState state = entry.getValue();
             boolean expired = state.isExpired();
-            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.debug, entry.getKey()); // TODO: FINISH1!!!!!!!!!11
+            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.debug, entry.getKey());
             return expired;
         });
     }
