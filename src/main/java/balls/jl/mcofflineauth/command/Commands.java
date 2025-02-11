@@ -194,7 +194,7 @@ public class Commands {
                 MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
                 context.getSource().sendFeedback(() -> Text.literal("Unbound your key.").formatted(Formatting.GREEN), true);
                 if (!ServerConfig.allowsUnboundUsers())
-                    context.getSource().sendFeedback(() -> Text.literal("The server will kick users without a key, but you have a %ss grace period to bind again.".formatted(ServerConfig.getUnboundUserGracePeriod())).formatted(Formatting.GOLD), false);
+                    context.getSource().sendFeedback(() -> Text.literal("The server will reject users without a key, but you have a %ss grace period to bind again.".formatted(ServerConfig.getUnboundUserGracePeriod())).formatted(Formatting.GOLD), false);
                 return OK;
             } else {
                 context.getSource().sendFeedback(() -> Text.literal("You haven't bound your key yet.").formatted(Formatting.RED), false);
