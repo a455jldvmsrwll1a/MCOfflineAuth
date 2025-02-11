@@ -162,10 +162,17 @@ public class Commands {
             String user = StringArgumentType.getString(context, "user");
             String key = StringArgumentType.getString(context, "public-key");
             try {
-                if (AuthorisedKeys.bind(user, key, true))
-                    context.getSource().sendFeedback(() -> Text.literal("Replaced the key bound to %s.".formatted(user)).formatted(Formatting.GREEN), true);
-                else
-                    context.getSource().sendFeedback(() -> Text.literal("Bound key to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
+                switch (AuthorisedKeys.bind(user, key, true)) {
+                    case INSERTED -> {
+                        context.getSource().sendFeedback(() -> Text.literal("Bound key to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
+                    }
+                    case IDENTICAL -> {
+                        context.getSource().sendFeedback(() -> Text.literal("This key is already bound to user %s").formatted(Formatting.RED), false);
+                    }
+                    case REPLACED -> {
+                        context.getSource().sendFeedback(() -> Text.literal("Replaced the key bound to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
+                    }
+                }
                 return OK;
             } catch (IllegalArgumentException e) {
                 context.getSource().sendFeedback(() -> Text.literal("!! Provided public key is invalid! Error:").formatted(Formatting.RED), false);
