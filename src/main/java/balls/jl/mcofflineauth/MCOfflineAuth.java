@@ -71,10 +71,15 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void onServerTickFinished(MinecraftServer server) {
-        CHALLENGES.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        CHALLENGES.entrySet().removeIf(entry -> {
+            ChallengeState state = entry.getValue();
+            boolean expired = state.isExpired();
+            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.debug, entry.getKey()); // TODO: FINISH1!!!!!!!!!11
+            return expired;
+        });
     }
 
-    private static LoginChallengePayload spawnChallenge() {
+    private static LoginChallengePayload spawnChallenge(String debug) {
         SecureRandom rng = new SecureRandom();
         UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
 
@@ -82,7 +87,7 @@ public class MCOfflineAuth implements ModInitializer {
         rng.nextBytes(plainText);
 
         LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText);
-        CHALLENGES.put(uuid, new ChallengeState(plainText));
+        CHALLENGES.put(uuid, new ChallengeState(plainText, debug));
 
         return payload;
     }
@@ -107,13 +112,15 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     static class ChallengeState {
-        static final int CHALLENGE_TIMEOUT = 5;
+        static final int CHALLENGE_TIMEOUT = 5000;
         public final byte[] data;
+        public final String debug;
         private final Instant expiration;
 
-        public ChallengeState(byte[] data) {
-            expiration = Instant.now().plusSeconds(CHALLENGE_TIMEOUT);
+        public ChallengeState(byte[] data, String debug) {
+            expiration = Instant.now().plusMillis(CHALLENGE_TIMEOUT);
             this.data = data;
+            this.debug = debug;
         }
 
         public boolean isExpired() {
@@ -136,7 +143,8 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            LoginChallengePayload payload = spawnChallenge();
+            String debug = context.handler().getDebugProfile().getName();
+            LoginChallengePayload payload = spawnChallenge(debug);
             context.send(payload);
             return true;
         }
