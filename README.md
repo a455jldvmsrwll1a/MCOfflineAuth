@@ -20,12 +20,12 @@ Basic authentication mod for servers.
 
 **Just need to download the mod? You can use the precompiled binaries which can be found in the [Releases](https://github.com/a455jldvmsrwll1a/MCOfflineAuth/releases) section.**
 
-**(Work in Progress)** Building from source:
+Building from source:
 
 1. Clone the repository and enter the project directory.
 2. Run `./gradlew build` on Linux/Mac and `.\gradlew.bat build` on Windows.
 3. Hopefully it should build just fine.
-4. The compiled JAR can be found in `build/libs/MCOfflineAuth-*.jar` (without the `-sources`).
+4. The compiled JAR can be found in `build/libs/MCOfflineAuth-*.jar`, along with the source JAR.
 
 
 ## Usage (Players)
