@@ -72,7 +72,6 @@ public class Commands {
         if (config) {
             src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
             src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
-            src.sendFeedback(() -> Text.literal("/offauth allowUnboundUsers <allow> - Set whether to allow users without a key bound."), false);
         }
 
         if (!op && (!binding || !config)) {
@@ -222,26 +221,6 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such user %s has a key bound.".formatted(user)).formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }))).then(literal("allowUnboundUsers").requires(Permissions.require("mc-offline-auth.config", 4)).executes(context -> {
-            if (ServerConfig.allowsUnboundUsers())
-                context.getSource().sendFeedback(() -> Text.literal("Unbound users are allowed to join.").formatted(Formatting.GOLD), false);
-            else
-                context.getSource().sendFeedback(() -> Text.literal("Unbound users are prohibited from joining.").formatted(Formatting.DARK_BLUE), false);
-            return OK;
-        }).then(argument("allow", BoolArgumentType.bool()).executes(context -> {
-            boolean allow = BoolArgumentType.getBool(context, "allow");
-            if (!ServerConfig.setAllowUnboundUsers(allow)) {
-                context.getSource().sendFeedback(() -> Text.literal("Nothing changed.").formatted(Formatting.RED), false);
-                return FAIL;
-            }
-
-            ServerConfig.write();
-
-            if (allow)
-                context.getSource().sendFeedback(() -> Text.literal("Allowing unbound users.").formatted(Formatting.BLUE), true);
-            else
-                context.getSource().sendFeedback(() -> Text.literal("Prohibiting unbound users.").formatted(Formatting.BLUE), true);
-            return OK;
         }))).then(literal("grace").requires(Permissions.require("mc-offline-auth.binding", 4)).then(argument("user", StringArgumentType.word()).suggests(new BoundPlayerSuggestions()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
             MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
