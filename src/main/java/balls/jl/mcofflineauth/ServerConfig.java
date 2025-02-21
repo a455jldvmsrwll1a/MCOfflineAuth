@@ -73,7 +73,6 @@ public class ServerConfig {
             MESSAGES.clear();
             DefaultMessages.setDefaultMessages();
             ConfigSerialise.deserialise(Files.readString(Constants.SERVER_CFG_PATH));
-            LOGGER.info("debug: messages: {}", MESSAGES);
         } catch (IOException e) {
             LOGGER.warn("Could not read server.conf file: {}", e.toString());
         }
