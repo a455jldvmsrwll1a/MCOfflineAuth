@@ -191,7 +191,7 @@ public class MCOfflineAuth implements ModInitializer {
             }
 
             if (!AuthorisedKeys.verifySignature(payload.user, state.data, payload.signature)) {
-                warn_unauthorised_login(context.server(), payload.user, "wrong signature/key");
+                warn_unauthorised_login(context.server(), payload.user, "wrong signature/key; can't verify identity.");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
