@@ -130,7 +130,7 @@ public class Commands {
             ServerConfig.read();
             context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
-        })).then(literal("disable").requires(Permissions.require("mc-offline-auth.config", 4)).executes(context -> {
+        })).then(literal("disable").requires(Permissions.require("mc-offline-auth", 4)).executes(context -> {
             if (!ServerConfig.setEnforcing(false)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already inactive.").formatted(Formatting.RED), false);
                 return FAIL;
