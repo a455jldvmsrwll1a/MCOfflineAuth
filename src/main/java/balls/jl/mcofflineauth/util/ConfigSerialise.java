@@ -20,6 +20,15 @@ public class ConfigSerialise {
         if (ServerConfig.allowsUnboundUsers()) sb.append("allow_unbound_users = true\n");
         else sb.append("allow_unbound_users = false\n");
 
+        if (ServerConfig.preventsLoginKick()) sb.append("prevent_login_kick = true\n");
+        else sb.append("prevent_login_kick = false\n");
+
+        if (ServerConfig.preventsLoginKickUnbound()) sb.append("prevent_login_kick_unbound = true\n");
+        else sb.append("prevent_login_kick_unbound = false\n");
+
+        if (ServerConfig.warnsUnauthorisedLogins()) sb.append("warn_unauthorised_logins = true\n");
+        else sb.append("warn_unauthorised_logins = false\n");
+
         sb.append("unbound_user_grace_period = ");
         sb.append(ServerConfig.getUnboundUserGracePeriod());
         sb.append('\n');
@@ -66,6 +75,12 @@ public class ConfigSerialise {
             ServerConfig.setEnforcing(value);
         } else if (Objects.equals(tokens[0], "allow_unbound_users")) {
             ServerConfig.setAllowUnboundUsers(value);
+        } else if (Objects.equals(tokens[0], "prevent_login_kick")) {
+            ServerConfig.setPreventLoginKick(value);
+        } else if (Objects.equals(tokens[0], "prevent_login_kick_warn")) {
+            ServerConfig.setPreventLoginKickUnbound(value);
+        } else if (Objects.equals(tokens[0], "warn_unauthorised_logins")) {
+            ServerConfig.setWarnUnauthorisedLogins(value);
         } else {
             LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
         }
