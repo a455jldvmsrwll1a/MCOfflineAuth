@@ -16,7 +16,7 @@ public class ServerConfig {
     private static boolean AUTH_ENFORCING = true;
     private static boolean ALLOW_UNBOUND_USERS = true;
     private static boolean PREVENT_LOGIN_KICK = true;
-    private static boolean PREVENT_LOGIN_KICK_UNBOUND = true;
+    private static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
     private static boolean WARN_UNAUTHORISED_LOGINS = true;
     private static int UNBOUND_USER_GRACE_PERIOD = 300;
 
