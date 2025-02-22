@@ -26,7 +26,16 @@ public class PlayerManagerMixin {
         String user = profile.getName();
         PlayerEntity existingPlayer = players.getPlayer(user);
 
-        if (existingPlayer != null && AuthorisedKeys.KEYS.containsKey(user))
-            ret.setReturnValue(Text.literal("A player with that user is already online, and the user is bound."));
+        if (existingPlayer == null) return;
+
+        if (AuthorisedKeys.KEYS.containsKey(user)) {
+            if (ServerConfig.preventsLoginKick()) {
+                ret.setReturnValue(Text.literal("A player with that user is already online, and the user is bound."));
+            }
+        } else {
+            if (ServerConfig.preventsLoginKickUnbound()) {
+                ret.setReturnValue(Text.literal("A player with that user is already online."));
+            }
+        }
     }
 }
