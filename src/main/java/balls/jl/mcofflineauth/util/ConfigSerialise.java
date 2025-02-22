@@ -77,7 +77,7 @@ public class ConfigSerialise {
             ServerConfig.setAllowUnboundUsers(value);
         } else if (Objects.equals(tokens[0], "prevent_login_kick")) {
             ServerConfig.setPreventLoginKick(value);
-        } else if (Objects.equals(tokens[0], "prevent_login_kick_warn")) {
+        } else if (Objects.equals(tokens[0], "prevent_login_kick_unbound")) {
             ServerConfig.setPreventLoginKickUnbound(value);
         } else if (Objects.equals(tokens[0], "warn_unauthorised_logins")) {
             ServerConfig.setWarnUnauthorisedLogins(value);
