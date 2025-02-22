@@ -5,6 +5,7 @@ import balls.jl.mcofflineauth.ServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.Objects;
 
 public class ConfigSerialise {
@@ -14,24 +15,16 @@ public class ConfigSerialise {
 
     public static String serialise() {
         StringBuilder sb = new StringBuilder();
-        if (ServerConfig.isEnforcing()) sb.append("enforcing = true\n");
-        else sb.append("enforcing = false\n");
 
-        if (ServerConfig.allowsUnboundUsers()) sb.append("allow_unbound_users = true\n");
-        else sb.append("allow_unbound_users = false\n");
-
-        if (ServerConfig.preventsLoginKick()) sb.append("prevent_login_kick = true\n");
-        else sb.append("prevent_login_kick = false\n");
-
-        if (ServerConfig.preventsLoginKickUnbound()) sb.append("prevent_login_kick_unbound = true\n");
-        else sb.append("prevent_login_kick_unbound = false\n");
-
-        if (ServerConfig.warnsUnauthorisedLogins()) sb.append("warn_unauthorised_logins = true\n");
-        else sb.append("warn_unauthorised_logins = false\n");
-
-        sb.append("unbound_user_grace_period = ");
-        sb.append(ServerConfig.getUnboundUserGracePeriod());
-        sb.append('\n');
+        sb.append("# Automatically generated file.\n");
+        sb.append("# %s\n".formatted(Instant.now()));
+        sb.append("#\n");
+        sb.append("enforcing = %s\n".formatted(ServerConfig.isEnforcing()));
+        sb.append("allow_unbound_users = %s\n".formatted(ServerConfig.allowsUnboundUsers()));
+        sb.append("prevent_login_kick = %s\n".formatted(ServerConfig.preventsLoginKick()));
+        sb.append("prevent_login_kick_unbound = %s\n".formatted(ServerConfig.preventsLoginKickUnbound()));
+        sb.append("warn_unauthorised_logins = %s\n".formatted(ServerConfig.warnsUnauthorisedLogins()));
+        sb.append("unbound_user_grace_period = %s\n".formatted(ServerConfig.getUnboundUserGracePeriod()));
 
         ServerConfig.messages().forEach((id, msg) -> sb.append("%s%s = %s\n".formatted(MESSAGE_ID_PREFIX, id, msg)));
 
