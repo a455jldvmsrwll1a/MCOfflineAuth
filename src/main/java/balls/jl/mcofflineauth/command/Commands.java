@@ -40,8 +40,7 @@ public class Commands {
         if (src.isExecutedByPlayer())
             src.sendFeedback(() -> Text.literal("§d§kBALLS§r §lMC §b§lOffline Auth §f(§hFabric§f)§r §d§kBALLS§r"), false);
         else src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) ============="), false);
-        src.sendFeedback(() -> Text.literal("Written by JL :>").formatted(Formatting.GREEN, Formatting.ITALIC), false);
-        src.sendFeedback(() -> Text.literal("Warning: this mod is beta software. Please report any issues found.").formatted(Formatting.GOLD), false);
+        src.sendFeedback(() -> Text.literal("Written by jldmw1a").formatted(Formatting.GREEN, Formatting.ITALIC), false);
         src.sendFeedback(() -> Text.literal("Type '/offauth help' for available commands or '/offauth info' for mod status."), false);
         return OK;
     }
@@ -52,7 +51,7 @@ public class Commands {
         boolean privileged = op || Permissions.check(src, "mc-offline-auth");
 
         src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
-        src.sendFeedback(() -> Text.literal("/offauth info                      - Show information about MCOA."), false);
+        src.sendFeedback(() -> Text.literal("/offauth info                      - Show mod status."), false);
         if (privileged)
             src.sendFeedback(() -> Text.literal("/offauth info <user>               - Show info about this <user>."), false);
         src.sendFeedback(() -> Text.literal("/offauth help                      - Show this help text."), false);
@@ -69,7 +68,7 @@ public class Commands {
             src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
             src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
         } else {
-            src.sendFeedback(() -> Text.literal("Missing commands? Some of them require special permissions.").formatted(Formatting.GOLD), false);
+            src.sendFeedback(() -> Text.literal("Missing commands? Some of them require OP or additional permissions.").formatted(Formatting.GOLD), false);
         }
 
         return OK;
