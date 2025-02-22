@@ -58,19 +58,18 @@ It will display whether it's active or not and how many users are in the databas
 
 To list players, run `/offauth list`. It will display the list of known players.
 
-To check a user's key (or lack thereof), run `/offauth info <user>`. This command can only be run by someone with either `binding` or `config` permissions.
+To check a user's key (or lack thereof), run `/offauth info <user>`. This command can only be run by someone with the `mc-offline-auth` permission or OP.
 
 ### Operators
 
 Operators can bind and unbind other players, enable and disable the mod, and change some configuration.
+The following commands require the `mc-offline-auth` permission or OP.
 
 To bind another user, run: `/offauth bind <username> <public key>`. Substitute `<username>` with the username and `<public key>` with the key they have provided you.
 
 To unbind another user, run: `/offauth unbind <username>`.
 
 To unbind *all* users, run: `/offauth unbind --`.
-
-The above commands require the `mc-offline-auth.binding` permission.
 
 ## Usage (Server Administrators)
 
@@ -92,15 +91,13 @@ The server stores known users in `authorised-keys.json`, and its configuration i
 
   Whether the mod is active. If this is `false`, the server will not attempt to intercept logins and will act like vanilla.
 
-  Can be enabled or disabled  with `/offauth enable` and `/offauth disable`, respectively (requires permission `mc-offline-auth.config`).
+  Can be enabled or disabled  with `/offauth enable` and `/offauth disable`, respectively (requires the `mc-offline-auth` permission or OP).
   
 - **Boolean** `allow_unbound_users`
 
   Decides whether users without a key bound prior to joining will be allowed in. If `false`, the server will kick users not in `authorised-keys.json`. A server admin will have to bind users' keys in advance.
 
-  Can be set in the console with `/offauth allowUnboundUsers <true|false>` (requires permission `mc-offline-auth.config`).
-
-  Users can temporarily be exempt from this when they unbind or using `/offauth grace <user>` (requires permission `mc-offline-auth.binding`).
+  Users can temporarily be exempt from this when they unbind or using `/offauth grace <user>` (requires the `mc-offline-auth` permission or OP).
 
 - **Unsigned Integer** `unbound_user_grace_period`
 

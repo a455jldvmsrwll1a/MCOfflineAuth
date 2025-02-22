@@ -13,5 +13,7 @@ public class DefaultMessages {
         ServerConfig.setMessage("noKeyBannerInfo", "No key is bound to this username; anyone can join with this name.");
         ServerConfig.setMessage("noKeyBannerHint", "§aClick this text or type \"§f/offauth bind§a\" to bind your key!§r");
         ServerConfig.setMessage("noKeyGrace", "§6The server will reject users without a key; you have a short grace period to bind again.§r");
+
+        ServerConfig.setMessage("rejectWarn", "§7** %s was rejected: %s§r");
     }
 }

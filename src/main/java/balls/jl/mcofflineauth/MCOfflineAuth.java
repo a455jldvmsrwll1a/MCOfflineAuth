@@ -12,6 +12,7 @@ import lol.bai.badpackets.api.config.ConfigTaskExecutor;
 import lol.bai.badpackets.api.config.ServerConfigContext;
 import lol.bai.badpackets.api.play.PlayPackets;
 import lol.bai.badpackets.api.play.ServerPlayContext;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -34,6 +35,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -144,14 +146,16 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
+            String username = context.handler().getDebugProfile().getName();
+
             if (!context.canSend(LoginChallengePayload.ID)) {
                 context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
+                warn_unauthorised_login(context.server(), username, "doesn't have MCOA mod");
                 context.handler().disconnect(Text.of(ServerConfig.message("accessDenied")));
                 return false;
             }
 
-            String debug = context.handler().getDebugProfile().getName();
-            LoginChallengePayload payload = spawnChallenge(debug);
+            LoginChallengePayload payload = spawnChallenge(username);
             context.send(payload);
             return true;
         }
@@ -181,11 +185,13 @@ public class MCOfflineAuth implements ModInitializer {
                 }
 
                 // Else, kick them.
+                warn_unauthorised_login(context.server(), payload.user, "not bound");
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
                 return;
             }
 
             if (!AuthorisedKeys.verifySignature(payload.user, state.data, payload.signature)) {
+                warn_unauthorised_login(context.server(), payload.user, "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
@@ -218,5 +224,22 @@ public class MCOfflineAuth implements ModInitializer {
                 }
             });
         }
+    }
+
+    static void warn_unauthorised_login(MinecraftServer server, String user, String reason) {
+        if (!ServerConfig.warnsUnauthorisedLogins()) return;
+
+        server.execute(() -> {
+            server.getPlayerManager().getPlayerList().forEach(player -> {
+                try {
+                    if (player.hasPermissionLevel(1) || Permissions.check(player.getUuid(), "mc-offline-auth").get()) {
+                        var style = Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("MCOfflineAuth rejected this player.")));
+                        player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
+                    }
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
     }
 }
