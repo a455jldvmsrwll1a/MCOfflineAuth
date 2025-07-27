@@ -70,7 +70,7 @@ public class MCOfflineAuth implements ModInitializer {
         if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(player.getName().getString())) {
             ServerConfig.print("noKeyBannerHeader", (msg) -> player.sendMessage(Text.of(msg)));
             ServerConfig.print("noKeyBannerInfo", (msg) -> player.sendMessage(Text.of(msg)));
-            ServerConfig.print("noKeyBannerHint", (msg) -> player.sendMessage(Text.literal(msg).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/offauth bind")))));
+            ServerConfig.print("noKeyBannerHint", (msg) -> player.sendMessage(Text.literal(msg).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent.RunCommand("/offauth bind")))));
 
             if (!ServerConfig.allowsUnboundUsers() && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
                 ServerConfig.print("noKeyGrace", (msg) -> player.sendMessage(Text.of(msg)));
@@ -233,7 +233,7 @@ public class MCOfflineAuth implements ModInitializer {
             server.getPlayerManager().getPlayerList().forEach(player -> {
                 try {
                     if (player.hasPermissionLevel(1) || Permissions.check(player.getUuid(), "mc-offline-auth").get()) {
-                        var style = Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("MCOfflineAuth rejected this player.")));
+                        var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
                         player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
                     }
                 } catch (ExecutionException | InterruptedException e) {

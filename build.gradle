@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.9-SNAPSHOT'
+    id 'fabric-loom' version '1.11-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -44,10 +44,10 @@ dependencies {
 
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include(modImplementation('me.lucko:fabric-permissions-api:0.3.3'))
+    include(modImplementation("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}"))
     include(modImplementation("lol.bai:badpackets:fabric-${project.badpackets_version}"))
 
-    modApi "com.terraformersmc:modmenu:13.0.0"
+    modApi "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
@@ -59,7 +59,8 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+                "loader_version": project.loader_version,
+                "modmenu_version": project.modmenu_version
     }
 }
 

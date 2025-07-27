@@ -103,7 +103,7 @@ public class Commands {
             if (entry != null) {
                 String key = KeyEncode.encodePublic(entry);
                 if (src.isExecutedByPlayer())
-                    src.sendFeedback(() -> Text.literal("User \"%s\" has key: §b%s§r".formatted(user, key)).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal("Copy to clipboard."))).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, key))), false);
+                    src.sendFeedback(() -> Text.literal("User \"%s\" has key: §b%s§r".formatted(user, key)).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Copy to clipboard."))).withClickEvent(new ClickEvent.CopyToClipboard(key))), false);
                 else src.sendFeedback(() -> Text.literal("User \"%s\" has key: %s".formatted(user, key)), false);
             } else {
                 src.sendFeedback(() -> Text.literal("User \"%s\" has no bound key.".formatted(user)).formatted(Formatting.RED), false);

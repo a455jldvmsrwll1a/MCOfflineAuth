@@ -41,7 +41,7 @@
     "minecraft": "${minecraft_version}"
   },
   "recommends": {
-    "modmenu": ">=13.0.0"
+    "modmenu": ">=${modmenu_version}"
   },
   "custom": {
     "modmenu": {
