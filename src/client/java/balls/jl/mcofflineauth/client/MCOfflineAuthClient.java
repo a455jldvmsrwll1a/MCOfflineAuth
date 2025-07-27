@@ -11,6 +11,7 @@ import lol.bai.badpackets.api.config.ConfigPackets;
 import lol.bai.badpackets.api.play.ClientPlayContext;
 import lol.bai.badpackets.api.play.PlayPackets;
 import net.fabricmc.api.ClientModInitializer;
+import net.minecraft.client.network.ClientPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +68,9 @@ public class MCOfflineAuthClient implements ClientModInitializer {
         @Override
         public void receive(ClientPlayContext context, PubkeyQueryPayload payload) {
             context.client().execute(() -> {
-                if (context.client().player != null) {
-                    String user = context.client().player.getName().getString();
+                ClientPlayerEntity player = context.client().player;
+                if (player != null && player.getName() != null) {
+                    String user = player.getName().getString();
                     context.send(new PubkeyBindPayload(user, ClientKeyPair.KEY_PAIR.getPublic()));
                 } else {
                     LOGGER.error("Failed to send public key to the server.");
