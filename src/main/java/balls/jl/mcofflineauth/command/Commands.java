@@ -1,9 +1,6 @@
 package balls.jl.mcofflineauth.command;
 
-import balls.jl.mcofflineauth.AuthorisedKeys;
-import balls.jl.mcofflineauth.Constants;
-import balls.jl.mcofflineauth.MCOfflineAuth;
-import balls.jl.mcofflineauth.ServerConfig;
+import balls.jl.mcofflineauth.*;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
@@ -12,6 +9,7 @@ import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
 import static net.minecraft.server.command.CommandManager.argument;
@@ -125,8 +124,9 @@ public class Commands {
             return OK;
         })).then(literal("reload").requires(Permissions.require("mc-offline-auth", 4)).executes(context -> {
             LOGGER.info("Reloading user-key listing and config from disk...");
-            AuthorisedKeys.read();
             ServerConfig.read();
+            IgnoredUsers.read();
+            AuthorisedKeys.read();
             context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
         })).then(literal("disable").requires(Permissions.require("mc-offline-auth", 4)).executes(context -> {
@@ -214,6 +214,42 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Set grace period of %ss for user %s.".formatted(ServerConfig.getUnboundUserGracePeriod(), user)).formatted(Formatting.GREEN), true);
 
             return OK;
-        }))));
+        }))).then(literal("ignore").requires(Permissions.require("mc-offline-auth", 4)).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).executes(context -> {
+            UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+            if (!IgnoredUsers.ignoreUUID(uuid)) {
+                context.getSource().sendFeedback(() -> Text.literal("This UUID is already in the ignore list.").formatted(Formatting.RED), false);
+                return FAIL;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("Player %s will be exempt from authentication.".formatted(uuid)).formatted(Formatting.GREEN), true);
+                return OK;
+            }
+        }))).then(literal("name").then(argument("name", StringArgumentType.word()).executes(context -> {
+            String name = StringArgumentType.getString(context, "name");
+            if (!IgnoredUsers.ignoreUsername(name)) {
+                context.getSource().sendFeedback(() -> Text.literal("This username is already in the ignore list.").formatted(Formatting.RED), false);
+                context.getSource().sendFeedback(() -> Text.literal("Player %s will be exempt from authentication.".formatted(name)).formatted(Formatting.GREEN), true);
+                return FAIL;
+            }
+
+            return OK;
+        })))).then(literal("unignore").requires(Permissions.require("mc-offline-auth", 4)).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).suggests(new IgnoredUuidSuggestions()).executes(context -> {
+            UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+            if (!IgnoredUsers.unignoreUUID(uuid)) {
+                context.getSource().sendFeedback(() -> Text.literal("This UUID is not in the ignore list.").formatted(Formatting.RED), false);
+                return FAIL;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("Player %s will no longer be exempt from authentication.".formatted(uuid)).formatted(Formatting.GREEN), true);
+                return OK;
+            }
+        }))).then(literal("name").then(argument("name", StringArgumentType.word()).suggests(new IgnoredUsernameSuggestions()).executes(context -> {
+            String name = StringArgumentType.getString(context, "name");
+            if (!IgnoredUsers.unignoreUsername(name)) {
+                context.getSource().sendFeedback(() -> Text.literal("This username is not in the ignore list.").formatted(Formatting.RED), false);
+                return FAIL;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("Player %s will no longer be exempt from authentication.".formatted(name)).formatted(Formatting.GREEN), true);
+                return OK;
+            }
+        })))));
     }
 }
