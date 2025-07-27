@@ -146,7 +146,7 @@ public class Commands {
                 return FAIL;
             }
 
-            context.getSource().sendFeedback(() -> Text.literal("Sent key request to client; this won't work without the mod installed.").formatted(Formatting.GRAY), false);
+            context.getSource().sendFeedback(() -> Text.literal("Trying to bind key; this won't work without the mod installed.").formatted(Formatting.GRAY), false);
             ServerPlayNetworking.send(player, new PubkeyQueryPayload());
             return OK;
         }).then(argument("user", StringArgumentType.word()).requires(Permissions.require("mc-offline-auth", 4)).suggests(new PlayerSuggestions()).then(argument("public-key", StringArgumentType.word()).executes(context -> {
