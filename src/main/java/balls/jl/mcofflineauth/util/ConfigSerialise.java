@@ -64,18 +64,13 @@ public class ConfigSerialise {
             return;
         }
 
-        if (Objects.equals(tokens[0], "enforcing")) {
-            ServerConfig.setEnforcing(value);
-        } else if (Objects.equals(tokens[0], "allow_unbound_users")) {
-            ServerConfig.setAllowUnboundUsers(value);
-        } else if (Objects.equals(tokens[0], "prevent_login_kick")) {
-            ServerConfig.setPreventLoginKick(value);
-        } else if (Objects.equals(tokens[0], "prevent_login_kick_unbound")) {
-            ServerConfig.setPreventLoginKickUnbound(value);
-        } else if (Objects.equals(tokens[0], "warn_unauthorised_logins")) {
-            ServerConfig.setWarnUnauthorisedLogins(value);
-        } else {
-            LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
+        switch (tokens[0]) {
+            case "enforcing" -> ServerConfig.setEnforcing(value);
+            case "allow_unbound_users" -> ServerConfig.setAllowUnboundUsers(value);
+            case "prevent_login_kick" -> ServerConfig.setPreventLoginKick(value);
+            case "prevent_login_kick_unbound" -> ServerConfig.setPreventLoginKickUnbound(value);
+            case "warn_unauthorised_logins" -> ServerConfig.setWarnUnauthorisedLogins(value);
+            case null, default -> LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
         }
     }
 
