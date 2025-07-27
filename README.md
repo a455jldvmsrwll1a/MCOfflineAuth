@@ -13,7 +13,7 @@ Basic authentication mod for servers.
 
 - [Minecraft 1.21.6](https://www.minecraft.net)
 - [Fabric 0.16.14](https://fabricmc.net/) or later.
-- [Fabric API 0.128.2+1.21.6](https://modrinth.com/mod/fabric-api) .
+- [Fabric API 0.127.0+1.21.6](https://modrinth.com/mod/fabric-api/version/0.127.0+1.21.6)
 - **[Optional]** [ModMenu 15.0.0-beta.1](https://modrinth.com/mod/modmenu) or later.
 
 ## Installation
