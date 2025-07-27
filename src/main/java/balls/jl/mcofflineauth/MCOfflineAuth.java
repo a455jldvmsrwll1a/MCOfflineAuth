@@ -6,6 +6,7 @@ import balls.jl.mcofflineauth.net.LoginResponsePayload;
 import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
+import com.mojang.authlib.GameProfile;
 import lol.bai.badpackets.api.PacketReceiver;
 import lol.bai.badpackets.api.config.ConfigPackets;
 import lol.bai.badpackets.api.config.ConfigTaskExecutor;
@@ -117,6 +118,7 @@ public class MCOfflineAuth implements ModInitializer {
         registerEventCallbacks();
 
         ServerConfig.read();
+        IgnoredUsers.read();
         AuthorisedKeys.read();
     }
 
@@ -146,7 +148,13 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            String username = context.handler().getDebugProfile().getName();
+            GameProfile profile = context.handler().getDebugProfile();
+            if (IgnoredUsers.playerIsIgnored(profile)) {
+                LOGGER.warn("Player is exempt from authentication.");
+                return false;
+            }
+
+            String username = profile.getName();
 
             if (!context.canSend(LoginChallengePayload.ID)) {
                 context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
