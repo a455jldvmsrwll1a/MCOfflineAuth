@@ -7,7 +7,6 @@ import balls.jl.mcofflineauth.ServerConfig;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -74,7 +73,7 @@ public class Commands {
         return OK;
     }
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess registry, CommandManager.RegistrationEnvironment environment) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess ignoredRegistry, CommandManager.RegistrationEnvironment environment) {
         if (environment.integrated) return;
 
         dispatcher.register(literal("offauth").executes(Commands::printModInfo).then(literal("info").executes(context -> {
@@ -155,15 +154,9 @@ public class Commands {
             String key = StringArgumentType.getString(context, "public-key");
             try {
                 switch (AuthorisedKeys.bind(user, key, true)) {
-                    case INSERTED -> {
-                        context.getSource().sendFeedback(() -> Text.literal("Bound key to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
-                    }
-                    case IDENTICAL -> {
-                        context.getSource().sendFeedback(() -> Text.literal("This key is already bound to user %s").formatted(Formatting.RED), false);
-                    }
-                    case REPLACED -> {
-                        context.getSource().sendFeedback(() -> Text.literal("Replaced the key bound to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
-                    }
+                    case INSERTED -> context.getSource().sendFeedback(() -> Text.literal("Bound key to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
+                    case IDENTICAL -> context.getSource().sendFeedback(() -> Text.literal("This key is already bound to user %s").formatted(Formatting.RED), false);
+                    case REPLACED -> context.getSource().sendFeedback(() -> Text.literal("Replaced the key bound to user %s.".formatted(user)).formatted(Formatting.GREEN), true);
                 }
                 return OK;
             } catch (IllegalArgumentException e) {

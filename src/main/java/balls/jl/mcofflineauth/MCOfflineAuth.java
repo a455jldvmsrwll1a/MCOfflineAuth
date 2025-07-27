@@ -212,15 +212,9 @@ public class MCOfflineAuth implements ModInitializer {
                 }
 
                 switch (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true)) {
-                    case INSERTED -> {
-                        context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
-                    }
-                    case IDENTICAL -> {
-                        context.player().sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
-                    }
-                    case REPLACED -> {
-                        context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
-                    }
+                    case INSERTED -> context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+                    case IDENTICAL -> context.player().sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
+                    case REPLACED -> context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
                 }
             });
         }
@@ -229,17 +223,15 @@ public class MCOfflineAuth implements ModInitializer {
     static void warn_unauthorised_login(MinecraftServer server, String user, String reason) {
         if (!ServerConfig.warnsUnauthorisedLogins()) return;
 
-        server.execute(() -> {
-            server.getPlayerManager().getPlayerList().forEach(player -> {
-                try {
-                    if (player.hasPermissionLevel(1) || Permissions.check(player.getUuid(), "mc-offline-auth").get()) {
-                        var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
-                        player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
-                    }
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new RuntimeException(e);
+        server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
+            try {
+                if (player.hasPermissionLevel(1) || Permissions.check(player.getUuid(), "mc-offline-auth").get()) {
+                    var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
+                    player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
                 }
-            });
-        });
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }));
     }
 }
