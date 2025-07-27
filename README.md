@@ -11,10 +11,10 @@ Basic authentication mod for servers.
 
 ## Dependencies
 
-- [Minecraft 1.21.4](https://www.minecraft.net)
-- [Fabric 0.16.9](https://fabricmc.net/) or later.
-- [Fabric API](https://modrinth.com/mod/fabric-api)
-- **[Optional]** [ModMenu](https://modrinth.com/mod/modmenu) 13.0.0 or later.
+- [Minecraft 1.21.6](https://www.minecraft.net)
+- [Fabric 0.16.14](https://fabricmc.net/) or later.
+- [Fabric API 0.128.2+1.21.6](https://modrinth.com/mod/fabric-api) .
+- **[Optional]** [ModMenu 15.0.0-beta.1](https://modrinth.com/mod/modmenu) or later.
 
 ## Installation
 
@@ -36,7 +36,7 @@ In most cases, it is extremely simple:
 
 1. [Install](#installation) the mod.
 2. Join a server (with the  mod installed).
-3. Click the prompt when you log-on or run `/offauth bind`
+3. Click the prompt when you log on or run `/offauth bind`
 4. Done.
 
 *Got kicked?* The server can be set to reject users without a key already bound. In this case, an admin needs to bind you in advance.
@@ -73,11 +73,11 @@ To unbind *all* users, run: `/offauth unbind --`.
 
 ## Usage (Server Administrators)
 
-Setup should be as easy as dropping the JAR in the mods folder. :>
+Setup should be as easy as dropping the JAR in the `mods` folder.
 
 If files were modified externally during runtime, you can reload the mod's `server.conf` and `authorised-keys.json` by running `/offauth reload`.
 
-The aformentioned command can only be run by someone with either `binding` or `config` permissions.
+The aforementioned command can only be run by someone with either `binding` or `config` permissions.
 
 ## Configuration
 
