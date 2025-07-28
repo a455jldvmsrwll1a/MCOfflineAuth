@@ -1,5 +1,6 @@
 package balls.jl.mcofflineauth.mixin;
 
+import balls.jl.mcofflineauth.IgnoredUsers;
 import balls.jl.mcofflineauth.ServerConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
@@ -37,7 +38,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
     @Inject(method = "onHello", at = @At("HEAD"), cancellable = true)
     private void handleIncoming(LoginHelloC2SPacket packet, CallbackInfo ci) {
         if (!ServerConfig.keepingEncryption() || !ServerConfig.isEnforcing()) {
-            // execute original code
+            // use normal authentication
             return;
         }
 
@@ -49,6 +50,11 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
         if (!StringHelper.isValidPlayerName(profileName)) {
             throw new IllegalStateException("Username has invalid characters!");
+        }
+
+        if (IgnoredUsers.playerIsIgnored(new GameProfile(packet.profileId(), profileName))) {
+            // use normal authentication
+            return;
         }
 
         GameProfile hostProfile = server.getHostProfile();
