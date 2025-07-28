@@ -14,6 +14,7 @@ public class ServerConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
     private static final HashMap<String, String> MESSAGES = new HashMap<>();
     private static boolean AUTH_ENFORCING = true;
+    private static boolean KEEP_ENCRYPTION = false;
     private static boolean ALLOW_UNBOUND_USERS = true;
     private static boolean PREVENT_LOGIN_KICK = true;
     private static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
@@ -22,6 +23,10 @@ public class ServerConfig {
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;
+    }
+
+    public static boolean keepingEncryption() {
+        return KEEP_ENCRYPTION;
     }
 
     public static boolean allowsUnboundUsers() {
@@ -62,6 +67,10 @@ public class ServerConfig {
 
         AUTH_ENFORCING = enforce;
         return true;
+    }
+
+    public static void shouldKeepEncryption(boolean keep) {
+        KEEP_ENCRYPTION = keep;
     }
 
     public static void setAllowUnboundUsers(boolean allow) {

@@ -20,6 +20,7 @@ public class ConfigSerialise {
         sb.append("# %s\n".formatted(Instant.now()));
         sb.append("#\n");
         sb.append("enforcing = %s\n".formatted(ServerConfig.isEnforcing()));
+        sb.append("keep_encryption = %s\n".formatted(ServerConfig.keepingEncryption()));
         sb.append("allow_unbound_users = %s\n".formatted(ServerConfig.allowsUnboundUsers()));
         sb.append("prevent_login_kick = %s\n".formatted(ServerConfig.preventsLoginKick()));
         sb.append("prevent_login_kick_unbound = %s\n".formatted(ServerConfig.preventsLoginKickUnbound()));
@@ -66,6 +67,7 @@ public class ConfigSerialise {
 
         switch (tokens[0]) {
             case "enforcing" -> ServerConfig.setEnforcing(value);
+            case "keep_encryption" -> ServerConfig.shouldKeepEncryption(value);
             case "allow_unbound_users" -> ServerConfig.setAllowUnboundUsers(value);
             case "prevent_login_kick" -> ServerConfig.setPreventLoginKick(value);
             case "prevent_login_kick_unbound" -> ServerConfig.setPreventLoginKickUnbound(value);
