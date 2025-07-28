@@ -107,6 +107,18 @@ The server stores known users in `authorised-keys.json`, and its configuration i
 
   User-editable messages.
 
+## Disclaimer
+
+This mod is intended for private multiplayer servers only.
+
+All clients must have this mod, or be able to authenticate normally (in online mode).
+
+The server operator is responsible for who is able to join the server.
+
+This software is provided as-is, without warranty.
+
+Use at your own risk.
+
 ## Licence
 
 [MIT](LICENSE.txt)
