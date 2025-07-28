@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,14 +128,16 @@ public class AuthorisedKeys {
      * @param signature the signature to verify.
      * @return true if valid, false if not.
      */
-    public static boolean verifySignature(String user, byte[] data, byte[] signature) {
+    public static boolean verifySignature(String user, byte[] data, byte[] nonce, byte[] signature) {
         try {
             PublicKey publicKey = KEYS.get(user);
             if (publicKey == null) return false;
 
             Signature sig = Signature.getInstance(ALGORITHM);
             sig.initVerify(publicKey);
+            sig.update(nonce);
             sig.update(data);
+            sig.update(user.getBytes(StandardCharsets.UTF_8));
 
             return sig.verify(signature);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {

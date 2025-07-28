@@ -28,6 +28,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +97,7 @@ public class MCOfflineAuth implements ModInitializer {
         byte[] plainText = new byte[512];
         rng.nextBytes(plainText);
 
-        LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText);
+        LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText, user);
         CHALLENGES.put(uuid, new ChallengeState(user, plainText));
 
         return payload;
@@ -198,7 +199,7 @@ public class MCOfflineAuth implements ModInitializer {
                 return;
             }
 
-            if (!AuthorisedKeys.verifySignature(state.user, state.data, payload.signature)) {
+            if (!AuthorisedKeys.verifySignature(state.user, state.data, Uuids.toByteArray(payload.id), payload.signature)) {
                 warn_unauthorised_login(context.server(), state.user, "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
