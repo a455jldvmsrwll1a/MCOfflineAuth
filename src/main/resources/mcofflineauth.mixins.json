@@ -4,7 +4,8 @@
   "package": "balls.jl.mcofflineauth.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "PlayerManagerMixin"
+    "PlayerManagerMixin",
+    "ServerLoginNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
