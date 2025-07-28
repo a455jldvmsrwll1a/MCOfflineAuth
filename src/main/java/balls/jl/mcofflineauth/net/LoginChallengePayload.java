@@ -17,20 +17,24 @@ public class LoginChallengePayload implements CustomPayload {
 
     public final UUID id;
     public final byte[] data;
+    public final String user;
 
-    public LoginChallengePayload(UUID id, byte[] data) {
+    public LoginChallengePayload(UUID id, byte[] data, String user) {
         this.id = id;
         this.data = data;
+        this.user = user;
     }
 
     public LoginChallengePayload(PacketByteBuf buf) {
         id = buf.readUuid();
         data = buf.readByteArray();
+        user = buf.readString();
     }
 
     public void write(PacketByteBuf buf) {
         buf.writeUuid(id);
         buf.writeByteArray(data);
+        buf.writeString(user);
     }
 
     @Override
