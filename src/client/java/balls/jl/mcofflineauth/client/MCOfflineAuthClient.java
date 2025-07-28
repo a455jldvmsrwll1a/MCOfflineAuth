@@ -12,9 +12,12 @@ import lol.bai.badpackets.api.play.ClientPlayContext;
 import lol.bai.badpackets.api.play.PlayPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -46,7 +49,13 @@ public class MCOfflineAuthClient implements ClientModInitializer {
                 try {
                     Signature sig = Signature.getInstance(Constants.ALGORITHM);
                     sig.initSign(ClientKeyPair.KEY_PAIR.getPrivate());
+
+                    // Include the challenge UUID.
+                    sig.update(Uuids.toByteArray(payload.id));
+
                     sig.update(payload.data);
+                    // Include username (server POV) as well.
+                    sig.update(payload.user.getBytes(StandardCharsets.UTF_8));
 
                     context.send(new LoginResponsePayload(payload.id, sig.sign()));
                 } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
