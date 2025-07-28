@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +43,7 @@ import java.util.concurrent.ExecutionException;
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
-    private static final ConcurrentHashMap<UUID, ChallengeState> CHALLENGES = new ConcurrentHashMap<>();
+    private static final ChallengeManager CHALLENGES = new ChallengeManager();
 
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
 
@@ -80,27 +81,8 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void onServerTickFinished(MinecraftServer server) {
-        CHALLENGES.entrySet().removeIf(entry -> {
-            ChallengeState state = entry.getValue();
-            boolean expired = state.isExpired();
-            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.user, entry.getKey());
-            return expired;
-        });
-
+        CHALLENGES.removeExpired();
         UNBOUND_USER_GRACES.removeExpired();
-    }
-
-    private static LoginChallengePayload spawnChallenge(String user) {
-        SecureRandom rng = new SecureRandom();
-        UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
-
-        byte[] plainText = new byte[512];
-        rng.nextBytes(plainText);
-
-        LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText, user);
-        CHALLENGES.put(uuid, new ChallengeState(user, plainText));
-
-        return payload;
     }
 
     private static void showEscapeOfAccountability() {
@@ -121,23 +103,6 @@ public class MCOfflineAuth implements ModInitializer {
         ServerConfig.read();
         IgnoredUsers.read();
         AuthorisedKeys.read();
-    }
-
-    static class ChallengeState {
-        static final int CHALLENGE_TIMEOUT = 5000;
-        public final String user;
-        public final byte[] data;
-        private final Instant expiration;
-
-        public ChallengeState(String user, byte[] data) {
-            expiration = Instant.now().plusMillis(CHALLENGE_TIMEOUT);
-            this.user = user;
-            this.data = data;
-        }
-
-        public boolean isExpired() {
-            return Instant.now().isAfter(expiration);
-        }
     }
 
     static class LoginTask implements ConfigTaskExecutor {
@@ -164,7 +129,7 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            LoginChallengePayload payload = spawnChallenge(username);
+            LoginChallengePayload payload = CHALLENGES.createChallenge(username);
             context.send(payload);
             return true;
         }
@@ -176,7 +141,7 @@ public class MCOfflineAuth implements ModInitializer {
         public void receive(ServerConfigContext context, LoginResponsePayload payload) {
             context.finishTask(Constants.LOGIN_TASK);
 
-            ChallengeState state = CHALLENGES.remove(payload.id);
+            Challenge state = CHALLENGES.remove(payload.id);
             if (state == null) {
                 context.handler().disconnect(Text.of(ServerConfig.message("timeout")));
                 return;
