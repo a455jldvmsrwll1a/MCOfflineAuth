@@ -47,27 +47,58 @@ public class Commands {
         var src = context.getSource();
         boolean op = src.hasPermissionLevel(4);
         boolean privileged = op || Permissions.check(src, "mc-offline-auth");
+        boolean player = src.isExecutedByPlayer();
 
-        src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) =============").formatted(Formatting.DARK_PURPLE), false);
-        src.sendFeedback(() -> Text.literal("/offauth info                      - Show mod status."), false);
+        StringBuilder sb = new StringBuilder();
+
+        if (player)
+            sb.append("§5===== MC Offline Auth (Fabric) =====§r\n");
+        else
+            sb.append("===== MC Offline Auth (Fabric) =====\n");
+
+        sb.append("/offauth help\n");
+
+        sb.append("/offauth info.\n");
         if (privileged)
-            src.sendFeedback(() -> Text.literal("/offauth info <user>               - Show info about this <user>."), false);
-        src.sendFeedback(() -> Text.literal("/offauth help                      - Show this help text."), false);
+            sb.append("/offauth info <user>\n");
 
-        src.sendFeedback(() -> Text.literal("/offauth bind                      - Bind your key to your user."), false);
-        src.sendFeedback(() -> Text.literal("/offauth unbind                    - Unbind yourself, or the user <user>."), false);
+        sb.append("/offauth bind\n");
+        if (privileged)
+            sb.append("/offauth bind <user> <key>\n");
+
+        sb.append("/offauth unbind\n");
+        if (privileged) {
+            sb.append("/offauth unbind <user>\n");
+            if (player)
+                sb.append("/offauth unbind -- §7// all players§r\n");
+            else
+                sb.append("/offauth unbind -- // all players\n");
+        }
 
         if (privileged) {
-            src.sendFeedback(() -> Text.literal("/offauth list                      - List known users."), false);
-            src.sendFeedback(() -> Text.literal("/offauth bind <user> <key>         - Bind given <key> to <user>."), false);
-            src.sendFeedback(() -> Text.literal("/offauth unbind <user>             - Unbind yourself, or the user <user>."), false);
-            src.sendFeedback(() -> Text.literal("/offauth reload                    - Reload the authorised user list."), false);
-            src.sendFeedback(() -> Text.literal("/offauth grace <user>              - Allow <user> to join without a key."), false);
-            src.sendFeedback(() -> Text.literal("/offauth enable                    - Enable authentication."), false);
-            src.sendFeedback(() -> Text.literal("/offauth disable                   - Disable authentication."), false);
+            sb.append("""
+                    /offauth (enable | disable)
+                    /offauth reload
+                    /offauth ignore uuid <uuid>
+                    /offauth ignore name <username>
+                    /offauth unignore uuid <uuid>
+                    /offauth unignore name <username>
+                    /offauth grace <user>
+                    """);
+
+            if (player)
+                sb.append("/offauth grace -- §7// all players§r");
+            else
+                sb.append("/offauth grace -- // all players");
         } else {
-            src.sendFeedback(() -> Text.literal("Missing commands? Some of them require OP or additional permissions.").formatted(Formatting.GOLD), false);
+            if (player) {
+                sb.append("§6OP-only commands are hidden.§r");
+            } else {
+                sb.append("** OP-only commands are hidden. **");
+            }
         }
+
+        src.sendFeedback(() -> Text.literal(sb.toString()), false);
 
         return OK;
     }
