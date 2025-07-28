@@ -16,24 +16,20 @@ public class LoginResponsePayload implements CustomPayload {
     public static final PacketCodec<PacketByteBuf, LoginResponsePayload> CODEC = PacketCodec.of(LoginResponsePayload::write, LoginResponsePayload::new);
 
     public final UUID id;
-    public final String user;
     public final byte[] signature;
 
-    public LoginResponsePayload(UUID id, String user, byte[] signature) {
+    public LoginResponsePayload(UUID id, byte[] signature) {
         this.id = id;
         this.signature = signature;
-        this.user = user;
     }
 
     public LoginResponsePayload(PacketByteBuf buf) {
         id = buf.readUuid();
-        user = buf.readString();
         signature = buf.readByteArray();
     }
 
     public void write(PacketByteBuf buf) {
         buf.writeUuid(id);
-        buf.writeString(user);
         buf.writeByteArray(signature);
     }
 
