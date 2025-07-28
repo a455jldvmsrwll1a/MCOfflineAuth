@@ -82,14 +82,14 @@ public class MCOfflineAuth implements ModInitializer {
         CHALLENGES.entrySet().removeIf(entry -> {
             ChallengeState state = entry.getValue();
             boolean expired = state.isExpired();
-            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.debug, entry.getKey());
+            if (expired) LOGGER.warn("Challenge expired for connecting user {}: {}", state.user, entry.getKey());
             return expired;
         });
 
         UNBOUND_USER_GRACES.removeExpired();
     }
 
-    private static LoginChallengePayload spawnChallenge(String debug) {
+    private static LoginChallengePayload spawnChallenge(String user) {
         SecureRandom rng = new SecureRandom();
         UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
 
@@ -97,7 +97,7 @@ public class MCOfflineAuth implements ModInitializer {
         rng.nextBytes(plainText);
 
         LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText);
-        CHALLENGES.put(uuid, new ChallengeState(plainText, debug));
+        CHALLENGES.put(uuid, new ChallengeState(user, plainText));
 
         return payload;
     }
@@ -124,14 +124,14 @@ public class MCOfflineAuth implements ModInitializer {
 
     static class ChallengeState {
         static final int CHALLENGE_TIMEOUT = 5000;
+        public final String user;
         public final byte[] data;
-        public final String debug;
         private final Instant expiration;
 
-        public ChallengeState(byte[] data, String debug) {
+        public ChallengeState(String user, byte[] data) {
             expiration = Instant.now().plusMillis(CHALLENGE_TIMEOUT);
+            this.user = user;
             this.data = data;
-            this.debug = debug;
         }
 
         public boolean isExpired() {
@@ -181,30 +181,30 @@ public class MCOfflineAuth implements ModInitializer {
                 return;
             }
 
-            if (!AuthorisedKeys.KEYS.containsKey(payload.user)) {
-                LOGGER.warn("Connecting user {} is not in the database.", payload.user);
+            if (!AuthorisedKeys.KEYS.containsKey(state.user)) {
+                LOGGER.warn("Connecting user {} is not in the database.", state.user);
 
                 // Skip verification for unbound usernames if it's allowed.
                 if (ServerConfig.allowsUnboundUsers()) return;
 
-                if (UNBOUND_USER_GRACES.isHeld(payload.user)) {
-                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", payload.user);
+                if (UNBOUND_USER_GRACES.isHeld(state.user)) {
+                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user);
                     return;
                 }
 
                 // Else, kick them.
-                warn_unauthorised_login(context.server(), payload.user, "not bound");
+                warn_unauthorised_login(context.server(), state.user, "not bound");
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
                 return;
             }
 
-            if (!AuthorisedKeys.verifySignature(payload.user, state.data, payload.signature)) {
-                warn_unauthorised_login(context.server(), payload.user, "wrong signature/key; can't verify identity");
+            if (!AuthorisedKeys.verifySignature(state.user, state.data, payload.signature)) {
+                warn_unauthorised_login(context.server(), state.user, "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
 
-            LOGGER.info("Verified {}'s identity successfully.", payload.user);
+            LOGGER.info("Verified {}'s identity successfully.", state.user);
         }
     }
 
