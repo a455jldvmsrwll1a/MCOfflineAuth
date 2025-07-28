@@ -35,11 +35,22 @@ public class Commands {
 
     private static int printModInfo(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
-        if (src.isExecutedByPlayer())
-            src.sendFeedback(() -> Text.literal("§d§kBALLS§r §lMC §b§lOffline Auth §f(§hFabric§f)§r §d§kBALLS§r"), false);
-        else src.sendFeedback(() -> Text.literal("============= MC Offline Auth (Fabric) ============="), false);
-        src.sendFeedback(() -> Text.literal("Written by jldmw1a").formatted(Formatting.GREEN, Formatting.ITALIC), false);
-        src.sendFeedback(() -> Text.literal("Type '/offauth help' for available commands or '/offauth info' for mod status."), false);
+
+        StringBuilder sb = new StringBuilder();
+        if (src.isExecutedByPlayer()) {
+            sb.append("""
+                    §d§kBALLS§r §lMC §b§lOffline Auth §f(§hFabric§f)§r §d§kBALLS§r
+                    §a§oWritten by jldmw1a§r
+                    Type '§b/offauth help§r' for available commands or '§b/offauth info§r' for mod status.""");
+        } else {
+            sb.append("\n");
+            sb.append("""
+                    ============= MC Offline Auth (Fabric) =============
+                    Written by jldmw1a
+                    Type '/offauth help' for available commands or '/offauth info' for mod status.""");
+        }
+
+        src.sendFeedback(() -> Text.literal(sb.toString()), false);
         return OK;
     }
 
