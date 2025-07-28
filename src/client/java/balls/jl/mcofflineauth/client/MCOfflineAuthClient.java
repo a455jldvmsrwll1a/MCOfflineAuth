@@ -43,18 +43,12 @@ public class MCOfflineAuthClient implements ClientModInitializer {
         @Override
         public void receive(ClientConfigContext context, LoginChallengePayload payload) {
             context.client().execute(() -> {
-                String name = context.client().getGameProfile().getName();
-                if (name == null) {
-                    LOGGER.error("Could not retrieve the username.");
-                    return;
-                }
-
                 try {
                     Signature sig = Signature.getInstance(Constants.ALGORITHM);
                     sig.initSign(ClientKeyPair.KEY_PAIR.getPrivate());
                     sig.update(payload.data);
 
-                    context.send(new LoginResponsePayload(payload.id, name, sig.sign()));
+                    context.send(new LoginResponsePayload(payload.id, sig.sign()));
                 } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
                     throw new RuntimeException(e);
                 }
