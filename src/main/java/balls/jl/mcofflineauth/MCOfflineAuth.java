@@ -33,6 +33,7 @@ import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketAddress;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
@@ -125,7 +126,8 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            LoginChallengePayload payload = CHALLENGES.createChallenge(username);
+            SocketAddress address = context.handler().connection.getAddress();
+            LoginChallengePayload payload = CHALLENGES.createChallenge(address, username);
             context.send(payload);
             return true;
         }
@@ -141,6 +143,12 @@ public class MCOfflineAuth implements ModInitializer {
             if (state == null) {
                 context.handler().disconnect(Text.of(ServerConfig.message("timeout")));
                 return;
+            }
+
+            SocketAddress thisAddress = context.handler().connection.getAddress();
+            if (thisAddress != state.address) {
+                LOGGER.warn("Challenge for {} does not belong to {}", state.user, thisAddress);
+                context.handler().disconnect(Text.literal("Internal error occurred: answered challenge for wrong address."));
             }
 
             if (!AuthorisedKeys.KEYS.containsKey(state.user)) {
