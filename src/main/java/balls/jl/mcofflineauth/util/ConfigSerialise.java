@@ -25,6 +25,7 @@ public class ConfigSerialise {
         sb.append("prevent_login_kick = %s\n".formatted(ServerConfig.preventsLoginKick()));
         sb.append("prevent_login_kick_unbound = %s\n".formatted(ServerConfig.preventsLoginKickUnbound()));
         sb.append("warn_unauthorised_logins = %s\n".formatted(ServerConfig.warnsUnauthorisedLogins()));
+        sb.append("changes_require_approval = %s\n".formatted(ServerConfig.changesRequireApproval()));
         sb.append("unbound_user_grace_period = %s\n".formatted(ServerConfig.getUnboundUserGracePeriod()));
 
         ServerConfig.messages().forEach((id, msg) -> sb.append("%s%s = %s\n".formatted(MESSAGE_ID_PREFIX, id, msg)));
@@ -72,6 +73,7 @@ public class ConfigSerialise {
             case "prevent_login_kick" -> ServerConfig.setPreventLoginKick(value);
             case "prevent_login_kick_unbound" -> ServerConfig.setPreventLoginKickUnbound(value);
             case "warn_unauthorised_logins" -> ServerConfig.setWarnUnauthorisedLogins(value);
+            case "changes_require_approval" -> ServerConfig.shouldChangesRequireApproval(value);
             case null, default -> LOGGER.error("Config line has invalid key \"{}\": \"{}\".", tokens[0], line);
         }
     }
