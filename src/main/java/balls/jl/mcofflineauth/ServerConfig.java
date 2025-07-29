@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class ServerConfig {
@@ -20,6 +20,14 @@ public class ServerConfig {
     private static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
     private static boolean WARN_UNAUTHORISED_LOGINS = true;
     private static int UNBOUND_USER_GRACE_PERIOD = 300;
+    private static final ConcurrentHashMap<String, String> MESSAGES = new ConcurrentHashMap<>();
+    private volatile static boolean AUTH_ENFORCING = true;
+    private volatile static boolean KEEP_ENCRYPTION = false;
+    private volatile static boolean ALLOW_UNBOUND_USERS = true;
+    private volatile static boolean PREVENT_LOGIN_KICK = true;
+    private volatile static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
+    private volatile static boolean WARN_UNAUTHORISED_LOGINS = true;
+    private volatile static int UNBOUND_USER_GRACE_PERIOD = 300;
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;
@@ -53,7 +61,7 @@ public class ServerConfig {
         return MESSAGES.getOrDefault(id, id);
     }
 
-    public static HashMap<String, String> messages() {
+    public static ConcurrentHashMap<String, String> messages() {
         return MESSAGES;
     }
 
