@@ -6,13 +6,15 @@ import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 
 public class ChallengeManager {
-    private static final int MAX_CHALLENGES = 100;
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
+
+    private static final int MAX_CHALLENGES = 100;
 
     private final LinkedHashMap<UUID, Challenge> challenges = new LinkedHashMap<>();
     private final HashMap<String, UUID> trackedUsers = new HashMap<>();
@@ -25,7 +27,10 @@ public class ChallengeManager {
         rng.nextBytes(plainText);
 
         LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText, user);
-        challenges.put(uuid, new Challenge(user, address, plainText));
+
+        int CHALLENGE_TIMEOUT_MS = 5000;
+        Instant deadline = Instant.now().plusMillis(CHALLENGE_TIMEOUT_MS);
+        challenges.put(uuid, new Challenge(user, address, plainText, deadline));
 
         UUID oldChallenge = trackedUsers.put(user, uuid);
         if (oldChallenge != null)
@@ -33,7 +38,7 @@ public class ChallengeManager {
 
         if (challenges.size() > MAX_CHALLENGES) {
             Challenge old = challenges.remove(challenges.firstEntry().getKey());
-            trackedUsers.remove(old.user);
+            trackedUsers.remove(old.user());
         }
 
         return payload;
@@ -41,7 +46,7 @@ public class ChallengeManager {
 
     public synchronized Challenge remove(UUID id) {
         Challenge removed = challenges.remove(id);
-        trackedUsers.remove(removed.user);
+        trackedUsers.remove(removed.user());
         return removed;
     }
 
@@ -51,8 +56,8 @@ public class ChallengeManager {
             boolean expired = state.isExpired();
 
             if (expired) {
-                trackedUsers.remove(state.user);
-                LOGGER.warn("Challenge expired for connecting user {}: {}", state.user, entry.getKey());
+                trackedUsers.remove(state.user());
+                LOGGER.warn("Challenge expired for connecting user {}: {}", state.user(), entry.getKey());
             }
             return expired;
         });
