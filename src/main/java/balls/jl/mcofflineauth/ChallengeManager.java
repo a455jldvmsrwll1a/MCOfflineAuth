@@ -19,7 +19,7 @@ public class ChallengeManager {
     private final LinkedHashMap<UUID, Challenge> challenges = new LinkedHashMap<>();
     private final HashMap<String, UUID> trackedUsers = new HashMap<>();
 
-    public synchronized LoginChallengePayload createChallenge(SocketAddress address, String user) {
+    public LoginChallengePayload createChallenge(SocketAddress address, String user) {
         SecureRandom rng = new SecureRandom();
         UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
 
@@ -30,15 +30,18 @@ public class ChallengeManager {
 
         int CHALLENGE_TIMEOUT_MS = 5000;
         Instant deadline = Instant.now().plusMillis(CHALLENGE_TIMEOUT_MS);
-        challenges.put(uuid, new Challenge(user, address, plainText, deadline));
 
-        UUID oldChallenge = trackedUsers.put(user, uuid);
-        if (oldChallenge != null)
-            challenges.remove(oldChallenge);
+        synchronized (this) {
+            challenges.put(uuid, new Challenge(user, address, plainText, deadline));
 
-        if (challenges.size() > MAX_CHALLENGES) {
-            Challenge old = challenges.remove(challenges.firstEntry().getKey());
-            trackedUsers.remove(old.user());
+            UUID oldChallenge = trackedUsers.put(user, uuid);
+            if (oldChallenge != null)
+                challenges.remove(oldChallenge);
+
+            if (challenges.size() > MAX_CHALLENGES) {
+                Challenge old = challenges.remove(challenges.firstEntry().getKey());
+                trackedUsers.remove(old.user());
+            }
         }
 
         return payload;
