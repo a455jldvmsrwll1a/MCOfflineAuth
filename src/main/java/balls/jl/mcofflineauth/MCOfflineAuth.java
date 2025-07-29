@@ -146,35 +146,35 @@ public class MCOfflineAuth implements ModInitializer {
             }
 
             SocketAddress thisAddress = context.handler().connection.getAddress();
-            if (thisAddress != state.address) {
-                LOGGER.warn("Challenge for {} does not belong to {}", state.user, thisAddress);
+            if (thisAddress != state.address()) {
+                LOGGER.warn("Challenge for {} does not belong to {}", state.user(), thisAddress);
                 context.handler().disconnect(Text.literal("Internal error occurred: answered challenge for wrong address."));
             }
 
-            if (!AuthorisedKeys.KEYS.containsKey(state.user)) {
-                LOGGER.warn("Connecting user {} is not in the database.", state.user);
+            if (!AuthorisedKeys.KEYS.containsKey(state.user())) {
+                LOGGER.warn("Connecting user {} is not in the database.", state.user());
 
                 // Skip verification for unbound usernames if it's allowed.
                 if (ServerConfig.allowsUnboundUsers()) return;
 
-                if (UNBOUND_USER_GRACES.isHeld(state.user)) {
-                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user);
+                if (UNBOUND_USER_GRACES.isHeld(state.user())) {
+                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user());
                     return;
                 }
 
                 // Else, kick them.
-                warn_unauthorised_login(context.server(), state.user, "not bound");
+                warn_unauthorised_login(context.server(), state.user(), "not bound");
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
                 return;
             }
 
-            if (!AuthorisedKeys.verifySignature(state.user, state.data, Uuids.toByteArray(payload.id), payload.signature)) {
-                warn_unauthorised_login(context.server(), state.user, "wrong signature/key; can't verify identity");
+            if (!AuthorisedKeys.verifySignature(state.user(), state.data(), Uuids.toByteArray(payload.id), payload.signature)) {
+                warn_unauthorised_login(context.server(), state.user(), "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
 
-            LOGGER.info("Verified {}'s identity successfully.", state.user);
+            LOGGER.info("Verified {}'s identity successfully.", state.user());
         }
     }
 
