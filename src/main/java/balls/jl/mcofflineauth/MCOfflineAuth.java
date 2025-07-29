@@ -28,6 +28,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,8 +175,14 @@ public class MCOfflineAuth implements ModInitializer {
         @Override
         public void receive(ServerPlayContext context, PubkeyBindPayload payload) {
             context.server().execute(() -> {
-                if (!Objects.equals(payload.user, context.player().getName().getString())) {
-                    LOGGER.warn("Public-key payload username \"{}\" does not match the user who sent it!", payload.user);
+                String actualName = context.player().getName().getString();
+
+                if (!Objects.equals(payload.user, actualName)) {
+                    if (StringHelper.isValidPlayerName(payload.user))
+                        LOGGER.warn("Username {} does not match the user who sent it ({})!", payload.user, actualName);
+                    else
+                        LOGGER.warn("Username provided by user {} is not a valid player name!", actualName);
+
                     context.player().sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
                     return;
                 }
