@@ -4,6 +4,7 @@ import balls.jl.mcofflineauth.net.LoginChallengePayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketAddress;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,7 +17,7 @@ public class ChallengeManager {
     private final LinkedHashMap<UUID, Challenge> challenges = new LinkedHashMap<>();
     private final HashMap<String, UUID> trackedUsers = new HashMap<>();
 
-    public synchronized LoginChallengePayload createChallenge(String user) {
+    public synchronized LoginChallengePayload createChallenge(SocketAddress address, String user) {
         SecureRandom rng = new SecureRandom();
         UUID uuid = new UUID(rng.nextLong(), rng.nextLong());
 
@@ -24,7 +25,7 @@ public class ChallengeManager {
         rng.nextBytes(plainText);
 
         LoginChallengePayload payload = new LoginChallengePayload(uuid, plainText, user);
-        challenges.put(uuid, new Challenge(user, plainText));
+        challenges.put(uuid, new Challenge(user, address, plainText));
 
         UUID oldChallenge = trackedUsers.put(user, uuid);
         if (oldChallenge != null)
