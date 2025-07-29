@@ -12,14 +12,6 @@ import java.util.function.Consumer;
 
 public class ServerConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
-    private static final HashMap<String, String> MESSAGES = new HashMap<>();
-    private static boolean AUTH_ENFORCING = true;
-    private static boolean KEEP_ENCRYPTION = false;
-    private static boolean ALLOW_UNBOUND_USERS = true;
-    private static boolean PREVENT_LOGIN_KICK = true;
-    private static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
-    private static boolean WARN_UNAUTHORISED_LOGINS = true;
-    private static int UNBOUND_USER_GRACE_PERIOD = 300;
     private static final ConcurrentHashMap<String, String> MESSAGES = new ConcurrentHashMap<>();
     private volatile static boolean AUTH_ENFORCING = true;
     private volatile static boolean KEEP_ENCRYPTION = false;
@@ -27,6 +19,7 @@ public class ServerConfig {
     private volatile static boolean PREVENT_LOGIN_KICK = true;
     private volatile static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
     private volatile static boolean WARN_UNAUTHORISED_LOGINS = true;
+    private volatile static boolean CHANGES_REQUIRE_APPROVAL = false;
     private volatile static int UNBOUND_USER_GRACE_PERIOD = 300;
 
     public static boolean isEnforcing() {
@@ -51,6 +44,10 @@ public class ServerConfig {
 
     public static boolean warnsUnauthorisedLogins() {
         return WARN_UNAUTHORISED_LOGINS;
+    }
+
+    public static boolean changesRequireApproval() {
+        return CHANGES_REQUIRE_APPROVAL;
     }
 
     public static int getUnboundUserGracePeriod() {
@@ -95,6 +92,10 @@ public class ServerConfig {
 
     public static void setWarnUnauthorisedLogins(boolean warn) {
         WARN_UNAUTHORISED_LOGINS = warn;
+    }
+
+    public static void shouldChangesRequireApproval(boolean require) {
+        CHANGES_REQUIRE_APPROVAL = true;
     }
 
     public static void setMessage(String id, String message) {
