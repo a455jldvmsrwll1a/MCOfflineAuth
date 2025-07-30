@@ -94,6 +94,8 @@ public class Commands {
                     /offauth ignore name <username>
                     /offauth unignore uuid <uuid>
                     /offauth unignore name <username>
+                    /offauth approve <username>
+                    /offauth reject <username>
                     /offauth grace <user>
                     """);
 
@@ -292,6 +294,36 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Player %s will no longer be exempt from authentication.".formatted(name)).formatted(Formatting.GREEN), true);
                 return OK;
             }
-        })))));
+        })))).then(literal("approve").requires(Permissions.require("mc-offline-auth", 4)).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
+            String name = StringArgumentType.getString(context, "name");
+            if (MCOfflineAuth.KEY_CHANGE_REQUESTS.approveUser(name)) {
+                context.getSource().sendFeedback(() -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), false);
+                ServerPlayerEntity rejectedPlayer = context.getSource().getServer().getPlayerManager().getPlayer(name);
+                if (rejectedPlayer != null) {
+                    rejectedPlayer.sendMessage(Text.literal("Your key request has been approved.").formatted(Formatting.GREEN));
+                }
+
+                LOGGER.info("{} approved bind/rebind request for {}.", context.getSource().getName(), name);
+                return OK;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
+                return FAIL;
+            }
+        }))).then(literal("reject").requires(Permissions.require("mc-offline-auth", 4)).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
+            String name = StringArgumentType.getString(context, "name");
+            if (MCOfflineAuth.KEY_CHANGE_REQUESTS.rejectUser(name)) {
+                context.getSource().sendFeedback(() -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), false);
+                ServerPlayerEntity rejectedPlayer = context.getSource().getServer().getPlayerManager().getPlayer(name);
+                if (rejectedPlayer != null) {
+                    rejectedPlayer.sendMessage(Text.literal("Your key request has been rejected.").formatted(Formatting.RED));
+                }
+
+                LOGGER.info("{} rejected bind request for {}.", context.getSource().getName(), name);
+                return OK;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
+                return FAIL;
+            }
+        }))));
     }
 }

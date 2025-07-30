@@ -34,8 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
+import java.security.PublicKey;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
+import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
 
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -43,6 +46,7 @@ public class MCOfflineAuth implements ModInitializer {
     private static final ChallengeManager CHALLENGES = new ChallengeManager();
 
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
+    public static final KeyChangeRequests KEY_CHANGE_REQUESTS = new KeyChangeRequests();
 
     private static void registerPacketPayloads() {
         ConfigPackets.registerClientChannel(LoginChallengePayload.ID, LoginChallengePayload.CODEC);
@@ -80,6 +84,15 @@ public class MCOfflineAuth implements ModInitializer {
     private static void onServerTickFinished(MinecraftServer server) {
         CHALLENGES.removeExpired();
         UNBOUND_USER_GRACES.removeExpired();
+
+        KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> {
+            entries.forEach(entry -> {
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+                if (player != null) {
+                    bindUserKey(player, entry.getValue());
+                }
+            });
+        });
     }
 
     private static void showEscapeOfAccountability() {
@@ -183,7 +196,9 @@ public class MCOfflineAuth implements ModInitializer {
         @Override
         public void receive(ServerPlayContext context, PubkeyBindPayload payload) {
             context.server().execute(() -> {
-                String actualName = context.player().getName().getString();
+                ServerPlayerEntity player = context.player();
+                String actualName = player.getName().getString();
+
 
                 if (!Objects.equals(payload.user, actualName)) {
                     if (StringHelper.isValidPlayerName(payload.user))
@@ -191,16 +206,34 @@ public class MCOfflineAuth implements ModInitializer {
                     else
                         LOGGER.warn("Username provided by user {} is not a valid player name!", actualName);
 
-                    context.player().sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
+                    player.sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
                     return;
                 }
 
-                switch (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true)) {
-                    case INSERTED -> context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
-                    case IDENTICAL -> context.player().sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
-                    case REPLACED -> context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+                if (ServerConfig.changesRequireApproval() && (!player.hasPermissionLevel(4) && !Permissions.check(player, PERMISSION_STR))) {
+                    player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
+                    context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
+                        if (otherPlayer.hasPermissionLevel(4) || Permissions.check(otherPlayer, PERMISSION_STR))
+                            otherPlayer.sendMessage(
+                                    Text.literal("§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
+                                            .formatted(actualName, actualName))
+                                            .setStyle(Style.EMPTY
+                                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
+                                                    .withClickEvent(new ClickEvent.RunCommand("/offauth approve %s".formatted(actualName)))));
+                    });
+                    KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
+                }  else {
+                    bindUserKey(player, payload.publicKey);
                 }
             });
+        }
+    }
+
+    static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
+        switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
+            case INSERTED -> player.sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+            case IDENTICAL -> player.sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
+            case REPLACED -> player.sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
         }
     }
 
