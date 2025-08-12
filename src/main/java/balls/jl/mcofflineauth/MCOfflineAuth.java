@@ -34,6 +34,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.luckperms.api.LuckPerms;
@@ -265,7 +266,11 @@ public class MCOfflineAuth implements ModInitializer {
         }));
     }
 
-    public static boolean checkPrivilege(ServerPlayerEntity player) {
+    public static boolean checkPrivilege(@Nullable ServerPlayerEntity player) {
+        if (player == null) {
+            return false;
+        }
+
         if (player.hasPermissionLevel(3)) {
             return true;
         }
