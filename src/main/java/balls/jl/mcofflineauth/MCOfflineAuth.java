@@ -28,12 +28,17 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.SocketAddress;
+import java.security.PublicKey;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
+import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
 
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -41,6 +46,7 @@ public class MCOfflineAuth implements ModInitializer {
     private static final ChallengeManager CHALLENGES = new ChallengeManager();
 
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
+    public static final KeyChangeRequests KEY_CHANGE_REQUESTS = new KeyChangeRequests();
 
     private static void registerPacketPayloads() {
         ConfigPackets.registerClientChannel(LoginChallengePayload.ID, LoginChallengePayload.CODEC);
@@ -78,6 +84,15 @@ public class MCOfflineAuth implements ModInitializer {
     private static void onServerTickFinished(MinecraftServer server) {
         CHALLENGES.removeExpired();
         UNBOUND_USER_GRACES.removeExpired();
+
+        KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> {
+            entries.forEach(entry -> {
+                ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+                if (player != null) {
+                    bindUserKey(player, entry.getValue());
+                }
+            });
+        });
     }
 
     private static void showEscapeOfAccountability() {
@@ -124,7 +139,8 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            LoginChallengePayload payload = CHALLENGES.createChallenge(username);
+            SocketAddress address = context.handler().connection.getAddress();
+            LoginChallengePayload payload = CHALLENGES.createChallenge(address, username);
             context.send(payload);
             return true;
         }
@@ -142,30 +158,36 @@ public class MCOfflineAuth implements ModInitializer {
                 return;
             }
 
-            if (!AuthorisedKeys.KEYS.containsKey(state.user)) {
-                LOGGER.warn("Connecting user {} is not in the database.", state.user);
+            SocketAddress thisAddress = context.handler().connection.getAddress();
+            if (thisAddress != state.address()) {
+                LOGGER.warn("Challenge for {} does not belong to {}", state.user(), thisAddress);
+                context.handler().disconnect(Text.literal("Internal error occurred: answered challenge for wrong address."));
+            }
+
+            if (!AuthorisedKeys.KEYS.containsKey(state.user())) {
+                LOGGER.warn("Connecting user {} is not in the database.", state.user());
 
                 // Skip verification for unbound usernames if it's allowed.
                 if (ServerConfig.allowsUnboundUsers()) return;
 
-                if (UNBOUND_USER_GRACES.isHeld(state.user)) {
-                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user);
+                if (UNBOUND_USER_GRACES.isHeld(state.user())) {
+                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user());
                     return;
                 }
 
                 // Else, kick them.
-                warn_unauthorised_login(context.server(), state.user, "not bound");
+                warn_unauthorised_login(context.server(), state.user(), "not bound");
                 context.handler().disconnect(Text.of(ServerConfig.message("kickNoKey")));
                 return;
             }
 
-            if (!AuthorisedKeys.verifySignature(state.user, state.data, Uuids.toByteArray(payload.id), payload.signature)) {
-                warn_unauthorised_login(context.server(), state.user, "wrong signature/key; can't verify identity");
+            if (!AuthorisedKeys.verifySignature(state.user(), state.data(), Uuids.toByteArray(payload.id), payload.signature)) {
+                warn_unauthorised_login(context.server(), state.user(), "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
             }
 
-            LOGGER.info("Verified {}'s identity successfully.", state.user);
+            LOGGER.info("Verified {}'s identity successfully.", state.user());
         }
     }
 
@@ -174,18 +196,44 @@ public class MCOfflineAuth implements ModInitializer {
         @Override
         public void receive(ServerPlayContext context, PubkeyBindPayload payload) {
             context.server().execute(() -> {
-                if (!Objects.equals(payload.user, context.player().getName().getString())) {
-                    LOGGER.warn("Public-key payload username \"{}\" does not match the user who sent it!", payload.user);
-                    context.player().sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
+                ServerPlayerEntity player = context.player();
+                String actualName = player.getName().getString();
+
+
+                if (!Objects.equals(payload.user, actualName)) {
+                    if (StringHelper.isValidPlayerName(payload.user))
+                        LOGGER.warn("Username {} does not match the user who sent it ({})!", payload.user, actualName);
+                    else
+                        LOGGER.warn("Username provided by user {} is not a valid player name!", actualName);
+
+                    player.sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
                     return;
                 }
 
-                switch (AuthorisedKeys.bind(payload.user, KeyEncode.encodePublic(payload.publicKey), true)) {
-                    case INSERTED -> context.player().sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
-                    case IDENTICAL -> context.player().sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
-                    case REPLACED -> context.player().sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+                if (ServerConfig.changesRequireApproval() && (!player.hasPermissionLevel(4) && !Permissions.check(player, PERMISSION_STR))) {
+                    player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
+                    context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
+                        if (otherPlayer.hasPermissionLevel(4) || Permissions.check(otherPlayer, PERMISSION_STR))
+                            otherPlayer.sendMessage(
+                                    Text.literal("§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
+                                            .formatted(actualName, actualName))
+                                            .setStyle(Style.EMPTY
+                                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
+                                                    .withClickEvent(new ClickEvent.RunCommand("/offauth approve %s".formatted(actualName)))));
+                    });
+                    KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
+                }  else {
+                    bindUserKey(player, payload.publicKey);
                 }
             });
+        }
+    }
+
+    static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
+        switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
+            case INSERTED -> player.sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+            case IDENTICAL -> player.sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
+            case REPLACED -> player.sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
         }
     }
 

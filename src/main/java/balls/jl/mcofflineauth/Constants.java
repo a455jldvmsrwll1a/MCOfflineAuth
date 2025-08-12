@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 public class Constants {
     public static final String MOD_ID = "mc-offline-auth";
 
+    public static final String PERMISSION_STR = MOD_ID;
+
     public static final int PUBKEY_SIZE = 44;
     public static final String ALGORITHM = "Ed25519";
 
