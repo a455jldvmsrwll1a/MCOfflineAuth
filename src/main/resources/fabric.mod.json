@@ -40,10 +40,8 @@
     "fabric": "*",
     "minecraft": "${minecraft_version}"
   },
-  "recommends": {
-    "modmenu": ">=${modmenu_version}"
-  },
   "suggests": {
+    "modmenu": ">=${modmenu_version}",
     "luckperms": ">=${luckperms_version}"
   },
   "custom": {
