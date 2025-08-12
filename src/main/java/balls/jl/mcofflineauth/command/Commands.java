@@ -71,7 +71,7 @@ public class Commands {
     private static int printHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
         boolean op = src.hasPermissionLevel(4);
-        boolean privileged = op /*|| Permissions.check(src, PERMISSION_STR)*/;
+        boolean privileged = op | MCOfflineAuth.checkPrivilege(src.getPlayer());
         boolean player = src.isExecutedByPlayer();
 
         StringBuilder sb = new StringBuilder();
