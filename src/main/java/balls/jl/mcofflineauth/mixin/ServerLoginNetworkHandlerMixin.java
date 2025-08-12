@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -35,6 +36,9 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Shadow @Nullable private String profileName;
 
+    @Unique
+    private boolean useNormalAuthentication = false;
+
     @Inject(method = "onHello", at = @At("HEAD"), cancellable = true)
     private void handleIncoming(LoginHelloC2SPacket packet, CallbackInfo ci) {
         if (!ServerConfig.keepingEncryption() || !ServerConfig.isEnforcing()) {
@@ -53,7 +57,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
 
         if (IgnoredUsers.playerIsIgnored(new GameProfile(packet.profileId(), profileName))) {
-            // use normal authentication
+            useNormalAuthentication = true;
             return;
         }
 
@@ -77,7 +81,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Inject(method = "onKey", at = @At("HEAD"), cancellable = true)
     private void handleEncryption(LoginKeyC2SPacket packet, CallbackInfo ci) {
-        if (!ServerConfig.keepingEncryption() || !ServerConfig.isEnforcing()) {
+        if (useNormalAuthentication || !ServerConfig.keepingEncryption() || !ServerConfig.isEnforcing()) {
             // execute original code
             return;
         }
