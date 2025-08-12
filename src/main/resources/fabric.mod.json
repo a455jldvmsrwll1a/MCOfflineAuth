@@ -38,11 +38,13 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
-    "fabric-permissions-api-v0": "*",
     "minecraft": "${minecraft_version}"
   },
   "recommends": {
     "modmenu": ">=${modmenu_version}"
+  },
+  "suggests": {
+    "luckperms": ">=${luckperms_version}"
   },
   "custom": {
     "modmenu": {

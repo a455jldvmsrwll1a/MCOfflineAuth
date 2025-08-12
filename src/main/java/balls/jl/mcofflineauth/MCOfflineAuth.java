@@ -13,12 +13,16 @@ import lol.bai.badpackets.api.config.ConfigTaskExecutor;
 import lol.bai.badpackets.api.config.ServerConfigContext;
 import lol.bai.badpackets.api.play.PlayPackets;
 import lol.bai.badpackets.api.play.ServerPlayContext;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedPermissionData;
+import net.luckperms.api.platform.PlayerAdapter;
 import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -32,21 +36,23 @@ import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import net.luckperms.api.LuckPerms;
 import java.net.SocketAddress;
 import java.security.PublicKey;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
 
 public class MCOfflineAuth implements ModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
+
     private static final ChallengeManager CHALLENGES = new ChallengeManager();
 
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
     public static final KeyChangeRequests KEY_CHANGE_REQUESTS = new KeyChangeRequests();
+
+    public static LuckPerms PERMS = null;
 
     private static void registerPacketPayloads() {
         ConfigPackets.registerClientChannel(LoginChallengePayload.ID, LoginChallengePayload.CODEC);
@@ -65,6 +71,7 @@ public class MCOfflineAuth implements ModInitializer {
 
         CommandRegistrationCallback.EVENT.register(Commands::register);
 
+        ServerLifecycleEvents.SERVER_STARTED.register(MCOfflineAuth::onServerStarted);
         ServerTickEvents.END_SERVER_TICK.register(MCOfflineAuth::onServerTickFinished);
     }
 
@@ -78,6 +85,16 @@ public class MCOfflineAuth implements ModInitializer {
 
             if (!ServerConfig.allowsUnboundUsers() && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
                 ServerConfig.print("noKeyGrace", (msg) -> player.sendMessage(Text.of(msg)));
+        }
+    }
+
+    private static void onServerStarted(MinecraftServer server) {
+        if (FabricLoader.getInstance().isModLoaded("luckperms")) {
+            try {
+                PERMS = LuckPermsProvider.get();
+            } catch (IllegalStateException e) {
+                LOGGER.error("[MCOfflineAuth] Could not get LuckPerms API instance: {}", e.getMessage());
+            }
         }
     }
 
@@ -210,10 +227,10 @@ public class MCOfflineAuth implements ModInitializer {
                     return;
                 }
 
-                if (ServerConfig.changesRequireApproval() && (!player.hasPermissionLevel(4) && !Permissions.check(player, PERMISSION_STR))) {
+                if (ServerConfig.changesRequireApproval() && (!player.hasPermissionLevel(4) && !checkPrivilege(player))) {
                     player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
                     context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
-                        if (otherPlayer.hasPermissionLevel(4) || Permissions.check(otherPlayer, PERMISSION_STR))
+                        if (otherPlayer.hasPermissionLevel(4) || checkPrivilege(otherPlayer))
                             otherPlayer.sendMessage(
                                     Text.literal("§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
                                             .formatted(actualName, actualName))
@@ -241,14 +258,24 @@ public class MCOfflineAuth implements ModInitializer {
         if (!ServerConfig.warnsUnauthorisedLogins()) return;
 
         server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
-            try {
-                if (player.hasPermissionLevel(1) || Permissions.check(player.getUuid(), "mc-offline-auth").get()) {
-                    var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
-                    player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
-                }
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
+            if (player.hasPermissionLevel(1) || checkPrivilege(player)) {
+                var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
+                player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
             }
         }));
+    }
+
+    public static boolean checkPrivilege(ServerPlayerEntity player) {
+        if (player.hasPermissionLevel(3)) {
+            return true;
+        }
+
+        if (PERMS == null) {
+            return false;
+        }
+
+        PlayerAdapter<ServerPlayerEntity> adapter = PERMS.getPlayerAdapter(ServerPlayerEntity.class);
+        CachedPermissionData perms = adapter.getPermissionData(player);
+        return perms.checkPermission(PERMISSION_STR).asBoolean();
     }
 }

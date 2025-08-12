@@ -6,7 +6,6 @@ import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.UuidArgumentType;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
 import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
@@ -33,6 +33,19 @@ public class Commands {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
     private static final int OK = 1;
     private static final int FAIL = 0;
+
+    private static final Predicate<ServerCommandSource> checkPrivilege = serverCommandSource -> {
+        if (!serverCommandSource.isExecutedByPlayer()) {
+            return true;
+        }
+
+        ServerPlayerEntity player = serverCommandSource.getPlayer();
+        if (player == null) {
+            return false;
+        }
+
+        return MCOfflineAuth.checkPrivilege(player);
+    };
 
     private static int printModInfo(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
@@ -58,7 +71,7 @@ public class Commands {
     private static int printHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
         boolean op = src.hasPermissionLevel(4);
-        boolean privileged = op || Permissions.check(src, PERMISSION_STR);
+        boolean privileged = op /*|| Permissions.check(src, PERMISSION_STR)*/;
         boolean player = src.isExecutedByPlayer();
 
         StringBuilder sb = new StringBuilder();
@@ -139,7 +152,7 @@ public class Commands {
             else src.sendFeedback(() -> Text.literal("%s users in the database.".formatted(KEYS.size())), false);
 
             return OK;
-        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require(PERMISSION_STR, 4)).suggests(new PlayerSuggestions()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(checkPrivilege).suggests(new PlayerSuggestions()).executes(context -> {
             var src = context.getSource();
             String user = StringArgumentType.getString(context, "user");
             var entry = KEYS.get(user);
@@ -158,7 +171,7 @@ public class Commands {
             context.getSource().sendFeedback(() -> Text.literal("%s known users:".formatted(KEYS.size())), false);
             KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
             return OK;
-        })).then(literal("enable").requires(Permissions.require(PERMISSION_STR, 4)).executes(context -> {
+        })).then(literal("enable").requires(checkPrivilege).executes(context -> {
             if (!ServerConfig.setEnforcing(true)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already active.").formatted(Formatting.RED), false);
                 return FAIL;
@@ -167,14 +180,14 @@ public class Commands {
             LOGGER.info("Offline Auth now enforcing.");
             context.getSource().sendFeedback(() -> Text.literal("MC Offline Auth is now ENFORCING.").formatted(Formatting.BLUE), true);
             return OK;
-        })).then(literal("reload").requires(Permissions.require(PERMISSION_STR, 4)).executes(context -> {
+        })).then(literal("reload").requires(checkPrivilege).executes(context -> {
             LOGGER.info("Reloading user-key listing and config from disk...");
             ServerConfig.read();
             IgnoredUsers.read();
             AuthorisedKeys.read();
             context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
-        })).then(literal("disable").requires(Permissions.require(PERMISSION_STR, 4)).executes(context -> {
+        })).then(literal("disable").requires(checkPrivilege).executes(context -> {
             if (!ServerConfig.setEnforcing(false)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already inactive.").formatted(Formatting.RED), false);
                 return FAIL;
@@ -194,7 +207,7 @@ public class Commands {
             context.getSource().sendFeedback(() -> Text.literal("Trying to bind key; this won't work without the mod installed.").formatted(Formatting.GRAY), false);
             ServerPlayNetworking.send(player, new PubkeyQueryPayload());
             return OK;
-        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require(PERMISSION_STR, 4)).suggests(new PlayerSuggestions()).then(argument("public-key", StringArgumentType.word()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(checkPrivilege).suggests(new PlayerSuggestions()).then(argument("public-key", StringArgumentType.word()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
             String key = StringArgumentType.getString(context, "public-key");
             try {
@@ -229,7 +242,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("You haven't bound your key yet.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }).then(argument("user", StringArgumentType.word()).requires(Permissions.require(PERMISSION_STR, 4)).suggests(new BoundPlayerSuggestions()).executes(context -> {
+        }).then(argument("user", StringArgumentType.word()).requires(checkPrivilege).suggests(new BoundPlayerSuggestions()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
 
             if (Objects.equals(user, "--")) {
@@ -250,7 +263,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such user %s has a key bound.".formatted(user)).formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }))).then(literal("grace").requires(Permissions.require(PERMISSION_STR, 4)).then(argument("user", StringArgumentType.word()).suggests(new BoundPlayerSuggestions()).executes(context -> {
+        }))).then(literal("grace").requires(checkPrivilege).then(argument("user", StringArgumentType.word()).suggests(new BoundPlayerSuggestions()).executes(context -> {
             String user = StringArgumentType.getString(context, "user");
             MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
             if (Objects.equals(user, "--"))
@@ -259,7 +272,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Set grace period of %ss for user %s.".formatted(ServerConfig.getUnboundUserGracePeriod(), user)).formatted(Formatting.GREEN), true);
 
             return OK;
-        }))).then(literal("ignore").requires(Permissions.require(PERMISSION_STR, 4)).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).executes(context -> {
+        }))).then(literal("ignore").requires(checkPrivilege).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).executes(context -> {
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
             if (!IgnoredUsers.ignoreUUID(uuid)) {
                 context.getSource().sendFeedback(() -> Text.literal("This UUID is already in the ignore list.").formatted(Formatting.RED), false);
@@ -277,7 +290,7 @@ public class Commands {
             }
 
             return OK;
-        })))).then(literal("unignore").requires(Permissions.require(PERMISSION_STR, 4)).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).suggests(new IgnoredUuidSuggestions()).executes(context -> {
+        })))).then(literal("unignore").requires(checkPrivilege).then(literal("uuid").then(argument("uuid", UuidArgumentType.uuid()).suggests(new IgnoredUuidSuggestions()).executes(context -> {
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
             if (!IgnoredUsers.unignoreUUID(uuid)) {
                 context.getSource().sendFeedback(() -> Text.literal("This UUID is not in the ignore list.").formatted(Formatting.RED), false);
@@ -295,7 +308,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Player %s will no longer be exempt from authentication.".formatted(name)).formatted(Formatting.GREEN), true);
                 return OK;
             }
-        })))).then(literal("approve").requires(Permissions.require(PERMISSION_STR, 4)).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
+        })))).then(literal("approve").requires(checkPrivilege).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
             String name = StringArgumentType.getString(context, "name");
             if (MCOfflineAuth.KEY_CHANGE_REQUESTS.approveUser(name)) {
                 context.getSource().sendFeedback(() -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), false);
@@ -310,7 +323,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }))).then(literal("reject").requires(Permissions.require(PERMISSION_STR, 4)).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
+        }))).then(literal("reject").requires(checkPrivilege).then(argument("name", StringArgumentType.word()).suggests(new RequestPendingSuggestions()).executes(context -> {
             String name = StringArgumentType.getString(context, "name");
             if (MCOfflineAuth.KEY_CHANGE_REQUESTS.rejectUser(name)) {
                 context.getSource().sendFeedback(() -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), false);
