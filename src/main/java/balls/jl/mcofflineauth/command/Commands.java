@@ -314,7 +314,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), false);
                 ServerPlayerEntity rejectedPlayer = context.getSource().getServer().getPlayerManager().getPlayer(name);
                 if (rejectedPlayer != null) {
-                    rejectedPlayer.sendMessage(Text.literal("Your key request has been approved.").formatted(Formatting.GREEN));
+                    rejectedPlayer.sendMessage(Text.literal("Your bind request has been approved.").formatted(Formatting.GREEN));
                 }
 
                 LOGGER.info("{} approved bind/rebind request for {}.", context.getSource().getName(), name);
@@ -329,7 +329,7 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), false);
                 ServerPlayerEntity rejectedPlayer = context.getSource().getServer().getPlayerManager().getPlayer(name);
                 if (rejectedPlayer != null) {
-                    rejectedPlayer.sendMessage(Text.literal("Your key request has been rejected.").formatted(Formatting.RED));
+                    rejectedPlayer.sendMessage(Text.literal("Your bind request has been rejected.").formatted(Formatting.RED));
                 }
 
                 LOGGER.info("{} rejected bind request for {}.", context.getSource().getName(), name);
