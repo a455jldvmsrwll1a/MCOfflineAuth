@@ -134,7 +134,6 @@ public class Commands {
         if (environment.integrated) return;
 
         dispatcher.register(literal("offauth").executes(Commands::printModInfo).then(literal("info").executes(context -> {
-            printModInfo(context);
             var src = context.getSource();
 
             if (ServerConfig.isEnforcing()) {
@@ -148,8 +147,10 @@ public class Commands {
             }
 
             if (src.isExecutedByPlayer())
-                src.sendFeedback(() -> Text.literal("§e%s§r users in the database.".formatted(KEYS.size())), false);
-            else src.sendFeedback(() -> Text.literal("%s users in the database.".formatted(KEYS.size())), false);
+                src.sendFeedback(() -> Text.literal("§e%s§r users in the database:".formatted(KEYS.size())), false);
+            else src.sendFeedback(() -> Text.literal("%s users in the database:".formatted(KEYS.size())), false);
+
+            KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
 
             return OK;
         }).then(argument("user", StringArgumentType.word()).requires(checkPrivilege).suggests(new PlayerSuggestions()).executes(context -> {
@@ -167,11 +168,7 @@ public class Commands {
             }
 
             return OK;
-        }))).then(literal("help").executes(Commands::printHelp)).then(literal("list").executes(context -> {
-            context.getSource().sendFeedback(() -> Text.literal("%s known users:".formatted(KEYS.size())), false);
-            KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
-            return OK;
-        })).then(literal("enable").requires(checkPrivilege).executes(context -> {
+        }))).then(literal("help").executes(Commands::printHelp)).then(literal("enable").requires(checkPrivilege).executes(context -> {
             if (!ServerConfig.setEnforcing(true)) {
                 context.getSource().sendFeedback(() -> Text.literal("Authentication is already active.").formatted(Formatting.RED), false);
                 return FAIL;
