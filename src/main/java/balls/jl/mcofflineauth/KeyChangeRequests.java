@@ -1,6 +1,10 @@
 package balls.jl.mcofflineauth;
 
+import balls.jl.mcofflineauth.util.KeyEncode;
 import net.minecraft.util.Pair;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.PublicKey;
 import java.time.Instant;
@@ -8,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyChangeRequests {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
+
     private final ConcurrentHashMap<String, Request> pendingRequests = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, PublicKey> acceptedRequests = new ConcurrentHashMap<>();
 
@@ -15,13 +21,18 @@ public class KeyChangeRequests {
         return pendingRequests.keySet().stream().iterator();
     }
 
-    public void requestStore(String user, PublicKey key) {
+    public void requestStore(@NonNull String user, @NonNull PublicKey key) {
+        LOGGER.info("Incoming key store request from user {} with key {}", user, KeyEncode.encodePublic(key));
+
         Instant deadline = Instant.now().plusSeconds(300);
         pendingRequests.put(user, new Request(key, deadline));
     }
 
     public void requestDrop(String user) {
-        requestStore(user, null);
+        LOGGER.info("Incoming key drop request from user {}", user);
+
+        Instant deadline = Instant.now().plusSeconds(300);
+        pendingRequests.put(user, new Request(null, deadline));
     }
 
     public boolean approveUser(String user) {
