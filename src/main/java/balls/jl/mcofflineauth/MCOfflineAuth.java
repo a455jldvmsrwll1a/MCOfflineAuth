@@ -27,6 +27,7 @@ import net.minecraft.command.permission.Permission;
 import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.ClickEvent;
@@ -36,6 +37,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -268,16 +270,15 @@ public class MCOfflineAuth implements ModInitializer {
             }
         }));
     }
-
-    public static boolean checkPrivilege(@Nullable ServerPlayerEntity player) {
+    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player) {
         return checkPrivilege(player, 3);
     }
 
-    public static boolean checkPrivilege(@Nullable ServerPlayerEntity player, int perm_level) {
-        if (player == null) {
-            return false;
-        }
+    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc) {
+        return checkPrivilege(cmdSrc, 3);
+    }
 
+    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player, int perm_level) {
         if (player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)))) {
             return true;
         }
@@ -289,5 +290,13 @@ public class MCOfflineAuth implements ModInitializer {
         PlayerAdapter<ServerPlayerEntity> adapter = PERMS.getPlayerAdapter(ServerPlayerEntity.class);
         CachedPermissionData perms = adapter.getPermissionData(player);
         return perms.checkPermission(PERMISSION_STR).asBoolean();
+    }
+
+    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc, int perm_level) {
+        if (cmdSrc.getPlayer() != null) {
+            return checkPrivilege(cmdSrc.getPlayer(), perm_level);
+        }
+
+        return cmdSrc.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)));
     }
 }
