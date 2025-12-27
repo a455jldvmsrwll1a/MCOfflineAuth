@@ -146,11 +146,20 @@ public class Commands {
                 else src.sendFeedback(() -> Text.literal("Authentication: STANDBY"), false);
             }
 
-            if (src.isExecutedByPlayer())
-                src.sendFeedback(() -> Text.literal("§e%s§r users in the database:".formatted(KEYS.size())), false);
-            else src.sendFeedback(() -> Text.literal("%s users in the database:".formatted(KEYS.size())), false);
+            StringBuilder listSb = new StringBuilder();
 
-            KEYS.forEach((user, key) -> context.getSource().sendFeedback(() -> Text.literal("  + %s".formatted(user)), false));
+            if (src.isExecutedByPlayer())
+                listSb.append("§e%s§r users in the database:\n".formatted(KEYS.size()));
+            else
+                listSb.append("%s users in the database:\n".formatted(KEYS.size()));
+
+            KEYS.forEach((user, key) -> {
+                listSb.append("  + ");
+                listSb.append(user);
+                listSb.append('\n');
+            });
+
+            context.getSource().sendFeedback(() -> Text.literal(listSb.toString()), false);
 
             return OK;
         }).then(argument("user", StringArgumentType.word()).requires(checkPrivilege).suggests(new PlayerSuggestions()).executes(context -> {
