@@ -11,10 +11,10 @@ Basic authentication mod for servers.
 
 ## Dependencies
 
-- [Minecraft 1.21.8](https://www.minecraft.net)
-- [Fabric 0.17.2](https://fabricmc.net/) or later.
-- [Fabric API 0.131.0+1.21.8](https://modrinth.com/mod/fabric-api/version/0.131.0+1.21.8)
-- **[Optional]** [ModMenu 15.0.0-beta.3](https://modrinth.com/mod/modmenu) or later.
+- [Minecraft 1.21.11](https://www.minecraft.net)
+- [Fabric 0.18.4](https://fabricmc.net/) or later.
+- [Fabric API 0.140.2+1.21.11](https://modrinth.com/mod/fabric-api/version/0.131.0+1.21.8)
+- **[Optional]** [ModMenu 17.0.0-beta.1](https://modrinth.com/mod/modmenu) or later.
 
 ## Installation
 
@@ -52,11 +52,9 @@ To unbind, you can do `/offauth unbind`.
 
 #### Status
 
-To view mod status, run `/offauth info`.
+To view mod status and list players, run `/offauth info`.
 
 It will display whether it's active or not and how many users are in the database.
-
-To list players, run `/offauth list`. It will display the list of known players.
 
 To check a user's key (or lack thereof), run `/offauth info <user>`. This command can only be run by someone with the `mc-offline-auth` permission or OP.
 
