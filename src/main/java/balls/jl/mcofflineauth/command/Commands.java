@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
 import static net.minecraft.server.command.CommandManager.argument;
@@ -57,7 +56,7 @@ public class Commands {
     private static int printHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
         boolean player = src.isExecutedByPlayer();
-        boolean privileged = !player || MCOfflineAuth.checkPrivilege(src);
+        boolean privileged = MCOfflineAuth.checkPrivilege(src);
 
         StringBuilder sb = new StringBuilder();
 

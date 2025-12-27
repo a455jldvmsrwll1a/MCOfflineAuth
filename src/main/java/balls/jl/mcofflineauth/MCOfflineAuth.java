@@ -38,7 +38,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.luckperms.api.LuckPerms;
@@ -108,14 +107,12 @@ public class MCOfflineAuth implements ModInitializer {
         UNBOUND_USER_GRACES.removeExpired();
         KEY_CHANGE_REQUESTS.removeExpired();
 
-        KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> {
-            entries.forEach(entry -> {
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
-                if (player != null) {
-                    bindUserKey(player, entry.getValue());
-                }
-            });
-        });
+        KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> entries.forEach(entry -> {
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+            if (player != null) {
+                bindUserKey(player, entry.getValue());
+            }
+        }));
     }
 
     private static void showEscapeOfAccountability() {

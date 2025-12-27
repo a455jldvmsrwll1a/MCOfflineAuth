@@ -2,7 +2,6 @@ package balls.jl.mcofflineauth.mixin;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.ServerConfig;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;

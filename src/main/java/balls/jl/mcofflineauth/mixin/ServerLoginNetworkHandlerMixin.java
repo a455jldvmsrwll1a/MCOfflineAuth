@@ -28,13 +28,13 @@ import java.security.PrivateKey;
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     @Shadow @Final private byte[] nonce;
-    @Shadow @Final private MinecraftServer server;
+    @Shadow @Final MinecraftServer server;
     @Shadow private ServerLoginNetworkHandler.State state;
     @Shadow @Final ClientConnection connection;
 
     @Shadow abstract void startVerify(GameProfile profile);
 
-    @Shadow @Nullable private String profileName;
+    @Shadow @Nullable String profileName;
 
     @Unique
     private boolean useNormalAuthentication = false;
