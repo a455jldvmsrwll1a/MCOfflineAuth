@@ -9,6 +9,8 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,7 +27,6 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
-import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
@@ -70,9 +71,8 @@ public class Commands {
 
     private static int printHelp(CommandContext<ServerCommandSource> context) {
         var src = context.getSource();
-        boolean op = src.hasPermissionLevel(4);
-        boolean privileged = op | MCOfflineAuth.checkPrivilege(src.getPlayer());
         boolean player = src.isExecutedByPlayer();
+        boolean privileged = !player || MCOfflineAuth.checkPrivilege(src.getPlayer());
 
         StringBuilder sb = new StringBuilder();
 

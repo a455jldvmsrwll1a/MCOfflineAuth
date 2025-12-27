@@ -4,6 +4,7 @@ import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.ServerConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,11 +20,11 @@ public class PlayerManagerMixin {
     @Unique
     private final PlayerManager players = (PlayerManager) (Object) this;
 
-    @Inject(method = "checkCanJoin(Ljava/net/SocketAddress;Lcom/mojang/authlib/GameProfile;)Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
-    private void checkCanJoin(SocketAddress addr, GameProfile profile, CallbackInfoReturnable<Text> ret) {
+    @Inject(method = "checkCanJoin(Ljava/net/SocketAddress;Lnet/minecraft/server/PlayerConfigEntry;)Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
+    private void checkCanJoin(SocketAddress addr, PlayerConfigEntry entry, CallbackInfoReturnable<Text> ret) {
         if (!ServerConfig.isEnforcing()) return;
 
-        String user = profile.getName();
+        String user = entry.name();
         PlayerEntity existingPlayer = players.getPlayer(user);
 
         if (existingPlayer == null) return;

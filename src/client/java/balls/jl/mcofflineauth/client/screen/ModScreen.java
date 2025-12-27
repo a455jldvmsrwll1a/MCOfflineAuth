@@ -27,7 +27,7 @@ public class ModScreen extends Screen {
         String keyString = KeyEncode.encodePublic(ClientKeyPair.KEY_PAIR.getPublic());
         ButtonWidget pkBtnWidget = ButtonWidget.builder(Text.of(keyString), (btn) -> {
             Clipboard clipboard = new Clipboard();
-            clipboard.setClipboard(this.client.getWindow().getHandle(), keyString);
+            clipboard.set(this.client.getWindow(), keyString);
             this.client.getToastManager().add(SystemToast.create(this.client, SystemToast.Type.NARRATOR_TOGGLE, Text.of("Public key copied to clipboard!"), Text.of("You can share this key with others.")));
         }).tooltip(Tooltip.of(Text.literal("Copy to clipboard."))).dimensions(75, 150 - this.textRenderer.fontHeight - 15, width - 100 - 20, 20).build();
 

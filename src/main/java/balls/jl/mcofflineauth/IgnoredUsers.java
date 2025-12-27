@@ -124,6 +124,6 @@ public class IgnoredUsers {
      * @return true if the player should be exempt from this mod.
      */
     public static boolean playerIsIgnored(GameProfile player) {
-        return IGNORED_UUIDS.contains(player.getId()) || IGNORED_USERNAMES.contains(player.getName());
+        return IGNORED_UUIDS.contains(player.id()) || IGNORED_USERNAMES.contains(player.name());
     }
 }

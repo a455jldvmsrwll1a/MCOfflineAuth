@@ -23,6 +23,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedPermissionData;
 import net.luckperms.api.platform.PlayerAdapter;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.network.DisconnectionInfo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
@@ -148,7 +150,7 @@ public class MCOfflineAuth implements ModInitializer {
                 return false;
             }
 
-            String username = profile.getName();
+            String username = profile.name();
 
             if (!context.canSend(LoginChallengePayload.ID)) {
                 context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
@@ -228,10 +230,10 @@ public class MCOfflineAuth implements ModInitializer {
                     return;
                 }
 
-                if (ServerConfig.changesRequireApproval() && (!player.hasPermissionLevel(4) && !checkPrivilege(player))) {
+                if (ServerConfig.changesRequireApproval() && !checkPrivilege(player)) {
                     player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
                     context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
-                        if (otherPlayer.hasPermissionLevel(4) || checkPrivilege(otherPlayer))
+                        if (checkPrivilege(otherPlayer))
                             otherPlayer.sendMessage(
                                     Text.literal("§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
                                             .formatted(actualName, actualName))
@@ -259,7 +261,7 @@ public class MCOfflineAuth implements ModInitializer {
         if (!ServerConfig.warnsUnauthorisedLogins()) return;
 
         server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
-            if (player.hasPermissionLevel(1) || checkPrivilege(player)) {
+            if (checkPrivilege(player, 1)) {
                 var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
                 player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
             }
@@ -267,11 +269,15 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     public static boolean checkPrivilege(@Nullable ServerPlayerEntity player) {
+        return checkPrivilege(player, 3);
+    }
+
+    public static boolean checkPrivilege(@Nullable ServerPlayerEntity player, int perm_level) {
         if (player == null) {
             return false;
         }
 
-        if (player.hasPermissionLevel(3)) {
+        if (player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)))) {
             return true;
         }
 

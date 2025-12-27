@@ -63,7 +63,7 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
         GameProfile hostProfile = server.getHostProfile();
         // skip if player *is* the host.
-        if (hostProfile != null && hostProfile.getName().equalsIgnoreCase(profileName)) {
+        if (hostProfile != null && hostProfile.name().equalsIgnoreCase(profileName)) {
             startVerify(hostProfile);
         } else {
             if (connection.isLocal() || !server.isOnlineMode()) {
