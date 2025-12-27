@@ -104,6 +104,7 @@ public class MCOfflineAuth implements ModInitializer {
     private static void onServerTickFinished(MinecraftServer server) {
         CHALLENGES.removeExpired();
         UNBOUND_USER_GRACES.removeExpired();
+        KEY_CHANGE_REQUESTS.removeExpired();
 
         KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> {
             entries.forEach(entry -> {
