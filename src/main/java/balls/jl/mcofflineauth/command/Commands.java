@@ -175,6 +175,7 @@ public class Commands {
             ServerConfig.read();
             IgnoredUsers.read();
             AuthorisedKeys.read();
+            UUIDRemap.read();
             context.getSource().sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
             return OK;
         })).then(literal("disable").requires(MCOfflineAuth::checkPrivilege).executes(context -> {
@@ -328,6 +329,52 @@ public class Commands {
                 context.getSource().sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
                 return FAIL;
             }
-        }))));
+        }))).then(literal("uuid").requires(MCOfflineAuth::checkPrivilege).then(literal("list").executes(context -> {
+            StringBuilder listSb = new StringBuilder();
+
+            if (context.getSource().isExecutedByPlayer())
+                listSb.append("§e%s§r UUID remaps:\n".formatted(UUIDRemap.REMAPS.size()));
+            else
+                listSb.append("%s UUID remaps:\n".formatted(UUIDRemap.REMAPS.size()));
+
+            UUIDRemap.REMAPS.forEach((src, dest) -> {
+                listSb.append("    ");
+                listSb.append(src);
+                listSb.append("  ->  ");
+                listSb.append(dest);
+                listSb.append('\n');
+            });
+
+            context.getSource().sendFeedback(() -> Text.literal(listSb.toString()), false);
+            return OK;
+        }).then(argument("uuid_src", UuidArgumentType.uuid()).suggests(new UUIDRemapSuggestions()).executes(context -> {
+            UUID src = UuidArgumentType.getUuid(context, "uuid_src");
+
+            UUID dest = UUIDRemap.REMAPS.get(src);
+            if (dest != null) {
+                context.getSource().sendFeedback(() -> Text.literal("This UUID is remapped to %s".formatted(dest)).formatted(Formatting.GREEN).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Copy to clipboard."))).withClickEvent(new ClickEvent.CopyToClipboard(dest.toString()))), true);
+                return OK;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("This UUID is not remapped to anything").formatted(Formatting.RED), true);
+                return FAIL;
+            }
+        }))).then(literal("map").then(argument("uuid_from", UuidArgumentType.uuid()).then(argument("uuid_to", UuidArgumentType.uuid()).executes(context -> {
+            UUID src = UuidArgumentType.getUuid(context, "uuid_from");
+            UUID dest = UuidArgumentType.getUuid(context, "uuid_to");
+
+            UUIDRemap.map(src, dest, true);
+            context.getSource().sendFeedback(() -> Text.literal("UUID mapping updated.").formatted(Formatting.GREEN), true);
+            return OK;
+        })))).then(literal("unmap").then(argument("uuid_from", UuidArgumentType.uuid()).suggests(new UUIDRemapSuggestions()).executes(context -> {
+            UUID src = UuidArgumentType.getUuid(context, "uuid_from");
+
+            if (UUIDRemap.unmap(src, true)) {
+                context.getSource().sendFeedback(() -> Text.literal("UUID mapping removed.").formatted(Formatting.GREEN), true);
+                return OK;
+            } else {
+                context.getSource().sendFeedback(() -> Text.literal("No such UUID map exists.").formatted(Formatting.RED), true);
+                return FAIL;
+            }
+        })))));
     }
 }

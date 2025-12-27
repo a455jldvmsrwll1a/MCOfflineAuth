@@ -1,7 +1,9 @@
 package balls.jl.mcofflineauth.mixin;
 
+import balls.jl.mcofflineauth.Constants;
 import balls.jl.mcofflineauth.IgnoredUsers;
 import balls.jl.mcofflineauth.ServerConfig;
+import balls.jl.mcofflineauth.UUIDRemap;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.encryption.NetworkEncryptionUtils;
@@ -13,6 +15,8 @@ import net.minecraft.server.network.ServerLoginNetworkHandler;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.Uuids;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
+import java.util.UUID;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
@@ -36,8 +41,13 @@ public abstract class ServerLoginNetworkHandlerMixin {
 
     @Shadow @Nullable String profileName;
 
+    @Shadow
+    private @org.jspecify.annotations.Nullable GameProfile profile;
     @Unique
     private boolean useNormalAuthentication = false;
+
+    @Unique
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     @Inject(method = "onHello", at = @At("HEAD"), cancellable = true)
     private void handleIncoming(LoginHelloC2SPacket packet, CallbackInfo ci) {
@@ -112,5 +122,15 @@ public abstract class ServerLoginNetworkHandlerMixin {
         }
 
         ci.cancel();
+    }
+
+    @Inject(method = "startVerify", at = @At("TAIL"))
+    private void startVerify(GameProfile profile, CallbackInfo ci) {
+        UUID replacementUUID = UUIDRemap.REMAPS.get(profile.id());
+        if (replacementUUID != null) {
+            this.profile = new GameProfile(replacementUUID, profile.name());
+
+            LOGGER.info("Remapped incoming UUID {} to instead be {}.", profile.id(), replacementUUID);
+        }
     }
 }

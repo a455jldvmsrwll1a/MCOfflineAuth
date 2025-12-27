@@ -133,6 +133,7 @@ public class MCOfflineAuth implements ModInitializer {
         ServerConfig.read();
         IgnoredUsers.read();
         AuthorisedKeys.read();
+        UUIDRemap.read();
     }
 
     static class LoginTask implements ConfigTaskExecutor {
