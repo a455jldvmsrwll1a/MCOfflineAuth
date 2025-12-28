@@ -54,6 +54,10 @@ public class ServerConfig {
         return UNBOUND_USER_GRACE_PERIOD;
     }
 
+    public static void setUnboundUserGracePeriod(int seconds) {
+        UNBOUND_USER_GRACE_PERIOD = seconds;
+    }
+
     public static String message(String id) {
         return MESSAGES.getOrDefault(id, id);
     }
@@ -104,10 +108,6 @@ public class ServerConfig {
 
     public static void clearMessage(String id) {
         MESSAGES.remove(id);
-    }
-
-    public static void setUnboundUserGracePeriod(int seconds) {
-        UNBOUND_USER_GRACE_PERIOD = seconds;
     }
 
     public static void read() {

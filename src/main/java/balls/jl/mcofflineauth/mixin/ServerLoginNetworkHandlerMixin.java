@@ -32,22 +32,19 @@ import java.util.UUID;
 
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
-    @Shadow @Final private byte[] nonce;
+    @Unique
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
     @Shadow @Final MinecraftServer server;
-    @Shadow private ServerLoginNetworkHandler.State state;
     @Shadow @Final ClientConnection connection;
-
-    @Shadow abstract void startVerify(GameProfile profile);
-
     @Shadow @Nullable String profileName;
-
+    @Shadow @Final private byte[] nonce;
+    @Shadow private ServerLoginNetworkHandler.State state;
     @Shadow
     private @org.jspecify.annotations.Nullable GameProfile profile;
     @Unique
     private boolean useNormalAuthentication = false;
 
-    @Unique
-    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
+    @Shadow abstract void startVerify(GameProfile profile);
 
     @Inject(method = "onHello", at = @At("HEAD"), cancellable = true)
     private void handleIncoming(LoginHelloC2SPacket packet, CallbackInfo ci) {

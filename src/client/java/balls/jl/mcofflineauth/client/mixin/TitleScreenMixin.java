@@ -25,15 +25,23 @@ public class TitleScreenMixin extends Screen {
         if (MCOfflineAuthClient.SHOW_HELP_TOAST) {
             MCOfflineAuthClient.SHOW_HELP_TOAST = false;
             assert this.client != null;
-            this.client.getToastManager().add(SystemToast.create(this.client, SystemToast.Type.NARRATOR_TOGGLE, Text.of("Created a new key-pair!"), Text.of("Click the OA button for more info.")));
+            this.client
+                    .getToastManager()
+                    .add(SystemToast.create(
+                            this.client,
+                            SystemToast.Type.NARRATOR_TOGGLE,
+                            Text.of("Created a new key-pair!"),
+                            Text.of("Click the OA button for more info.")));
         }
     }
 
     @Inject(at = @At("RETURN"), method = "addNormalWidgets")
     private void addModsButton(int y, int spacingY, CallbackInfoReturnable<Integer> cir) {
         this.addDrawableChild(ButtonWidget.builder(Text.literal("OA"), (button) -> {
-            Screen currentScreen = MinecraftClient.getInstance().currentScreen;
-            MinecraftClient.getInstance().setScreen(new ModScreen(currentScreen));
-        }).dimensions(this.width / 2 - 100 - spacingY, y, 20, 20).build());
+                    Screen currentScreen = MinecraftClient.getInstance().currentScreen;
+                    MinecraftClient.getInstance().setScreen(new ModScreen(currentScreen));
+                })
+                .dimensions(this.width / 2 - 100 - spacingY, y, 20, 20)
+                .build());
     }
 }

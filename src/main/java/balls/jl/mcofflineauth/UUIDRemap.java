@@ -8,12 +8,12 @@ import java.nio.file.Files;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static balls.jl.mcofflineauth.Constants.*;
+import static balls.jl.mcofflineauth.Constants.MOD_DIR;
+import static balls.jl.mcofflineauth.Constants.UUID_REMAPS_PATH;
 
 public class UUIDRemap {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
-
     public static final ConcurrentHashMap<UUID, UUID> REMAPS = new ConcurrentHashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
 
     /**
      * Number of entries in the list.

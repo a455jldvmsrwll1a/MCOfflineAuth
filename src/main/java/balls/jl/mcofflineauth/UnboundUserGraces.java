@@ -3,7 +3,7 @@ package balls.jl.mcofflineauth;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 
-public  class UnboundUserGraces {
+public class UnboundUserGraces {
     final ConcurrentHashMap<String, Instant> graces = new ConcurrentHashMap<>();
 
     public void hold(String user) {

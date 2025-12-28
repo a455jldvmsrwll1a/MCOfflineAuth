@@ -35,8 +35,7 @@ public class ChallengeManager {
             challenges.put(uuid, new Challenge(user, address, plainText, deadline));
 
             UUID oldChallenge = trackedUsers.put(user, uuid);
-            if (oldChallenge != null)
-                challenges.remove(oldChallenge);
+            if (oldChallenge != null) challenges.remove(oldChallenge);
 
             if (challenges.size() > MAX_CHALLENGES) {
                 Challenge old = challenges.remove(challenges.firstEntry().getKey());

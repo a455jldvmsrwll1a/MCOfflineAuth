@@ -146,6 +146,8 @@ public class AuthorisedKeys {
     }
 
     public enum BindResult {
-        INSERTED, IDENTICAL, REPLACED,
+        INSERTED,
+        IDENTICAL,
+        REPLACED,
     }
 }

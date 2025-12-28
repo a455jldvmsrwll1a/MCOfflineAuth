@@ -20,6 +20,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedPermissionData;
 import net.luckperms.api.platform.PlayerAdapter;
@@ -40,7 +41,7 @@ import net.minecraft.util.Uuids;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.luckperms.api.LuckPerms;
+
 import java.net.SocketAddress;
 import java.security.PublicKey;
 import java.util.Objects;
@@ -48,14 +49,10 @@ import java.util.Objects;
 import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
 
 public class MCOfflineAuth implements ModInitializer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
-
-
-    private static final ChallengeManager CHALLENGES = new ChallengeManager();
-
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
     public static final KeyChangeRequests KEY_CHANGE_REQUESTS = new KeyChangeRequests();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
+    private static final ChallengeManager CHALLENGES = new ChallengeManager();
     public static LuckPerms PERMS = null;
 
     private static void registerPacketPayloads() {
@@ -120,6 +117,55 @@ public class MCOfflineAuth implements ModInitializer {
         LOGGER.warn("extensive testing. I am not responsible for any griefed servers.");
         LOGGER.warn("It is always better to avoid offline mode if possible.");
         LOGGER.warn("USE THIS SOFTWARE AT YOUR OWN RISK.");
+    }
+
+    static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
+        switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
+            case INSERTED -> player.sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
+            case IDENTICAL -> player.sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
+            case REPLACED -> player.sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+        }
+    }
+
+    static void warn_unauthorised_login(MinecraftServer server, String user, String reason) {
+        if (!ServerConfig.warnsUnauthorisedLogins()) return;
+
+        server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
+            if (checkPrivilege(player, 1)) {
+                var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
+                player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
+            }
+        }));
+    }
+
+    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player) {
+        return checkPrivilege(player, 3);
+    }
+
+    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc) {
+        return checkPrivilege(cmdSrc, 3);
+    }
+
+    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player, int perm_level) {
+        if (player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)))) {
+            return true;
+        }
+
+        if (PERMS == null) {
+            return false;
+        }
+
+        PlayerAdapter<ServerPlayerEntity> adapter = PERMS.getPlayerAdapter(ServerPlayerEntity.class);
+        CachedPermissionData perms = adapter.getPermissionData(player);
+        return perms.checkPermission(PERMISSION_STR).asBoolean();
+    }
+
+    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc, int perm_level) {
+        if (cmdSrc.getPlayer() != null) {
+            return checkPrivilege(cmdSrc.getPlayer(), perm_level);
+        }
+
+        return cmdSrc.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)));
     }
 
     @Override
@@ -248,53 +294,5 @@ public class MCOfflineAuth implements ModInitializer {
                 }
             });
         }
-    }
-
-    static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
-        switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
-            case INSERTED -> player.sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
-            case IDENTICAL -> player.sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
-            case REPLACED -> player.sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
-        }
-    }
-
-    static void warn_unauthorised_login(MinecraftServer server, String user, String reason) {
-        if (!ServerConfig.warnsUnauthorisedLogins()) return;
-
-        server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
-            if (checkPrivilege(player, 1)) {
-                var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
-                player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
-            }
-        }));
-    }
-    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player) {
-        return checkPrivilege(player, 3);
-    }
-
-    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc) {
-        return checkPrivilege(cmdSrc, 3);
-    }
-
-    public static boolean checkPrivilege(@NotNull ServerPlayerEntity player, int perm_level) {
-        if (player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)))) {
-            return true;
-        }
-
-        if (PERMS == null) {
-            return false;
-        }
-
-        PlayerAdapter<ServerPlayerEntity> adapter = PERMS.getPlayerAdapter(ServerPlayerEntity.class);
-        CachedPermissionData perms = adapter.getPermissionData(player);
-        return perms.checkPermission(PERMISSION_STR).asBoolean();
-    }
-
-    public static boolean checkPrivilege(@NotNull ServerCommandSource cmdSrc, int perm_level) {
-        if (cmdSrc.getPlayer() != null) {
-            return checkPrivilege(cmdSrc.getPlayer(), perm_level);
-        }
-
-        return cmdSrc.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(perm_level)));
     }
 }

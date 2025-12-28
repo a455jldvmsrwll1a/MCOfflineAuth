@@ -21,7 +21,8 @@ public class AuthorisedKeysSerialise {
         for (int i = 0; i < length; ++i) {
             sb.append("    {\n");
             sb.append("        \"user\": \"%s\",\n".formatted(arr.get(i).getKey()));
-            sb.append("        \"key\": \"%s\"\n".formatted(KeyEncode.encodePublic(arr.get(i).getValue())));
+            sb.append("        \"key\": \"%s\"\n"
+                    .formatted(KeyEncode.encodePublic(arr.get(i).getValue())));
             sb.append("    }");
             if (i != length - 1) sb.append(',');
             sb.append('\n');

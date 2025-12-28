@@ -11,4 +11,3 @@ public class ModMenuApiImpl implements ModMenuApi {
         return ModScreen::new;
     }
 }
-

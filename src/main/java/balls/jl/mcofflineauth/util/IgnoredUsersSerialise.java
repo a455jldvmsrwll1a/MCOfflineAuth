@@ -1,14 +1,15 @@
 package balls.jl.mcofflineauth.util;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.UUID;
 
 public class IgnoredUsersSerialise {
     /**
      * Serialise ignore entries as a JSON string.
      */
     public static String serialiseIgnored(Set<String> usernames, Set<UUID> uuids) {
-        if (usernames.isEmpty() && uuids.isEmpty())
-            return "[]\n";
+        if (usernames.isEmpty() && uuids.isEmpty()) return "[]\n";
 
         StringBuilder sb = new StringBuilder();
         sb.append("[\n");
@@ -20,16 +21,14 @@ public class IgnoredUsersSerialise {
             String name = iter_usernames.next();
             sb.append("    { \"name\": \"%s\" }".formatted(name));
             // Make sure we put a comma after the usernames for the UUIDs following.
-            if (iter_usernames.hasNext() || iter_uuids.hasNext())
-                sb.append(',');
+            if (iter_usernames.hasNext() || iter_uuids.hasNext()) sb.append(',');
             sb.append('\n');
         }
 
         while (iter_uuids.hasNext()) {
             UUID uuid = iter_uuids.next();
             sb.append("    { \"uuid\": \"%s\" }".formatted(uuid));
-            if (iter_uuids.hasNext())
-                sb.append(',');
+            if (iter_uuids.hasNext()) sb.append(',');
             sb.append('\n');
         }
 

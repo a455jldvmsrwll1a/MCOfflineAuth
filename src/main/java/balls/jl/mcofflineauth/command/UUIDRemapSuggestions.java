@@ -1,9 +1,7 @@
 package balls.jl.mcofflineauth.command;
 
-import balls.jl.mcofflineauth.IgnoredUsers;
 import balls.jl.mcofflineauth.UUIDRemap;
 import com.mojang.brigadier.LiteralMessage;
-import com.mojang.brigadier.Message;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
