@@ -99,7 +99,7 @@ public class ServerConfig {
     }
 
     public static void shouldChangesRequireApproval(boolean require) {
-        CHANGES_REQUIRE_APPROVAL = true;
+        CHANGES_REQUIRE_APPROVAL = require;
     }
 
     public static void setMessage(String id, String message) {
