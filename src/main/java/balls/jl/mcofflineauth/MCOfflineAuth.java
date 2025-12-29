@@ -311,6 +311,13 @@ public class MCOfflineAuth implements ModInitializer {
 
                 // Otherwise, inform both the executing player and any privileged players.
 
+                if (!KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey)) {
+                    // Already sent a request prior.
+                    player.sendMessage(Text.literal("Please wait for admin approval!").formatted(Formatting.RED));
+
+                    return;
+                }
+
                 player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
 
                 context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
@@ -331,8 +338,6 @@ public class MCOfflineAuth implements ModInitializer {
                                                 .withClickEvent(new ClickEvent.RunCommand(
                                                         "/offauth reject %s".formatted(actualName))))));
                 });
-
-                KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
             });
         }
     }

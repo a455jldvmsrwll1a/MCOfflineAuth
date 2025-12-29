@@ -19,11 +19,22 @@ public class KeyChangeRequests {
         return pendingRequests.keySet().stream().iterator();
     }
 
-    public void requestStore(@NonNull String user, @NonNull PublicKey key) {
+    /// Create a new request.
+    /// @param user Username associated with the request.
+    /// @param key Public key associated with the request.
+    /// @return `false` if a request with the same user and key already exists. `true` otherwise.
+    public boolean requestStore(@NonNull String user, @NonNull PublicKey key) {
         LOGGER.info("Incoming key store request from user {} with key {}", user, KeyEncode.encodePublic(key));
+
+        if (pendingRequests.get(user) != null && pendingRequests.get(user).key().equals(key)) {
+            LOGGER.info("Incoming request is a duplicate.");
+            return false;
+        }
 
         Instant deadline = Instant.now().plusSeconds(300);
         pendingRequests.put(user, new Request(key, deadline));
+
+        return true;
     }
 
     public void requestDrop(String user) {
