@@ -115,7 +115,7 @@ public class MCOfflineAuth implements ModInitializer {
                 .ifPresent(entries -> entries.forEach(entry -> {
                     ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
                     if (player != null) {
-                        bindUserKey(player, entry.getValue());
+                        bindUserKey(server, player, entry.getValue());
                     }
                 }));
     }
@@ -129,7 +129,7 @@ public class MCOfflineAuth implements ModInitializer {
         USE THIS SOFTWARE AT YOUR OWN RISK.""");
     }
 
-    static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
+    static void bindUserKey(MinecraftServer server, ServerPlayerEntity player, PublicKey key) {
         switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
             case INSERTED ->
                 player.sendMessage(Text.literal("Your new key has been bound to your username!")
@@ -141,6 +141,14 @@ public class MCOfflineAuth implements ModInitializer {
                 player.sendMessage(
                         Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
         }
+
+        server.getPlayerManager().getPlayerList().forEach(otherPlayer -> {
+            if (MCOfflineAuth.checkPrivilege(otherPlayer, 1)) {
+                otherPlayer.sendMessage(
+                        Text.literal("User %s bound their key.".formatted(player.getStringifiedName()))
+                                .formatted(Formatting.GRAY));
+            }
+        });
     }
 
     static void warn_unauthorised_login(MinecraftServer server, String user, String reason) {
@@ -308,7 +316,7 @@ public class MCOfflineAuth implements ModInitializer {
 
                 // Check if no need for approval.
                 if (!ServerConfig.changesRequireApproval() || checkPrivilege(player)) {
-                    bindUserKey(player, payload.publicKey);
+                    bindUserKey(context.server(), player, payload.publicKey);
                 }
 
                 // Otherwise, inform both the executing player and any privileged players.

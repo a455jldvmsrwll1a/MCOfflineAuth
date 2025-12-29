@@ -15,13 +15,11 @@ import java.util.UUID;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -372,7 +370,16 @@ public class Commands {
         if (AuthorisedKeys.unbind(user, true)) {
             MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
             context.getSource()
-                    .sendFeedback(() -> Text.literal("Unbound your key.").formatted(Formatting.GREEN), true);
+                    .sendFeedback(() -> Text.literal("Unbound your key.").formatted(Formatting.GREEN), false);
+
+            MinecraftServer server = context.getSource().getServer();
+            server.execute(() -> server.getPlayerManager().getPlayerList().forEach(otherPlayer -> {
+                if (MCOfflineAuth.checkPrivilege(otherPlayer, 1)) {
+                    otherPlayer.sendMessage(Text.literal("User %s unbound their key.".formatted(user))
+                            .formatted(Formatting.GRAY));
+                }
+            }));
+
             if (!ServerConfig.allowsUnboundUsers())
                 context.getSource()
                         .sendFeedback(
@@ -539,11 +546,11 @@ public class Commands {
         if (MCOfflineAuth.KEY_CHANGE_REQUESTS.approveUser(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), false);
-            ServerPlayerEntity rejectedPlayer =
+                            () -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), true);
+            ServerPlayerEntity approvedPlayer =
                     context.getSource().getServer().getPlayerManager().getPlayer(name);
-            if (rejectedPlayer != null) {
-                rejectedPlayer.sendMessage(
+            if (approvedPlayer != null) {
+                approvedPlayer.sendMessage(
                         Text.literal("Your bind request has been approved.").formatted(Formatting.GREEN));
             }
 
@@ -564,7 +571,7 @@ public class Commands {
         if (MCOfflineAuth.KEY_CHANGE_REQUESTS.rejectUser(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), false);
+                            () -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), true);
             ServerPlayerEntity rejectedPlayer =
                     context.getSource().getServer().getPlayerManager().getPlayer(name);
             if (rejectedPlayer != null) {
