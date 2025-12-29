@@ -522,8 +522,8 @@ public class Commands {
         } else {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                            "The username \"%s\" will no longer be exempt from authentication.".formatted(name))
+                            () -> Text.literal("The username \"%s\" will no longer be exempt from authentication."
+                                            .formatted(name))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
