@@ -5,9 +5,14 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static balls.jl.mcofflineauth.MCOfflineAuth.bindUserKey;
 
 public class KeyChangeRequests {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -64,13 +69,17 @@ public class KeyChangeRequests {
         pendingRequests.entrySet().removeIf(entry -> entry.getValue().isExpired());
     }
 
-    public Optional<List<Map.Entry<String, PublicKey>>> takeAcceptedRequests() {
-        if (acceptedRequests.isEmpty()) return Optional.empty();
+    public void applyAcceptedRequests(MinecraftServer server) {
+        HashMap<String, PublicKey> requests = new HashMap<String, PublicKey>(acceptedRequests);
 
-        List<Map.Entry<String, PublicKey>> requests = new ArrayList<>(acceptedRequests.entrySet());
+        requests.forEach((user, key) -> {
+            ServerPlayerEntity player = server.getPlayerManager().getPlayer(user);
+            if (player != null) {
+                bindUserKey(server, player, key);
+            }
+        });
+
         acceptedRequests.clear();
-
-        return Optional.of(requests);
     }
 
     private record Request(PublicKey key, Instant deadline) {

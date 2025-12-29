@@ -109,15 +109,7 @@ public class MCOfflineAuth implements ModInitializer {
         CHALLENGES.removeExpired();
         UNBOUND_USER_GRACES.removeExpired();
         KEY_CHANGE_REQUESTS.removeExpired();
-
-        KEY_CHANGE_REQUESTS
-                .takeAcceptedRequests()
-                .ifPresent(entries -> entries.forEach(entry -> {
-                    ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
-                    if (player != null) {
-                        bindUserKey(server, player, entry.getValue());
-                    }
-                }));
+        KEY_CHANGE_REQUESTS.applyAcceptedRequests(server);
     }
 
     private static void showEscapeOfAccountability() {
