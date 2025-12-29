@@ -309,6 +309,8 @@ public class MCOfflineAuth implements ModInitializer {
                 // Check if no need for approval.
                 if (!ServerConfig.changesRequireApproval() || checkPrivilege(player)) {
                     bindUserKey(context.server(), player, payload.publicKey);
+
+                    return;
                 }
 
                 // Otherwise, inform both the executing player and any privileged players.
