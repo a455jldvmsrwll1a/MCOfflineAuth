@@ -5,6 +5,11 @@ import balls.jl.mcofflineauth.net.LoginChallengePayload;
 import balls.jl.mcofflineauth.net.LoginResponsePayload;
 import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Signature;
+import java.security.SignatureException;
 import lol.bai.badpackets.api.PacketReceiver;
 import lol.bai.badpackets.api.config.ClientConfigContext;
 import lol.bai.badpackets.api.config.ConfigPackets;
@@ -15,12 +20,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.Uuids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.security.SignatureException;
 
 public class MCOfflineAuthClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -60,7 +59,6 @@ public class MCOfflineAuthClient implements ClientModInitializer {
                 } catch (NoSuchAlgorithmException | SignatureException | InvalidKeyException e) {
                     throw new RuntimeException(e);
                 }
-
             });
         }
     }
@@ -81,4 +79,3 @@ public class MCOfflineAuthClient implements ClientModInitializer {
         }
     }
 }
-

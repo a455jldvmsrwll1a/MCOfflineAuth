@@ -1,5 +1,7 @@
 package balls.jl.mcofflineauth;
 
+import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
+
 import balls.jl.mcofflineauth.command.Commands;
 import balls.jl.mcofflineauth.net.LoginChallengePayload;
 import balls.jl.mcofflineauth.net.LoginResponsePayload;
@@ -7,6 +9,9 @@ import balls.jl.mcofflineauth.net.PubkeyBindPayload;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.authlib.GameProfile;
+import java.net.SocketAddress;
+import java.security.PublicKey;
+import java.util.Objects;
 import lol.bai.badpackets.api.PacketReceiver;
 import lol.bai.badpackets.api.config.ConfigPackets;
 import lol.bai.badpackets.api.config.ConfigTaskExecutor;
@@ -42,12 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.SocketAddress;
-import java.security.PublicKey;
-import java.util.Objects;
-
-import static balls.jl.mcofflineauth.Constants.PERMISSION_STR;
-
 public class MCOfflineAuth implements ModInitializer {
     public static final UnboundUserGraces UNBOUND_USER_GRACES = new UnboundUserGraces();
     public static final KeyChangeRequests KEY_CHANGE_REQUESTS = new KeyChangeRequests();
@@ -79,12 +78,19 @@ public class MCOfflineAuth implements ModInitializer {
     private static void onPlayerJoin(ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) {
         ServerPlayerEntity player = handler.getPlayer();
 
-        if (!server.isSingleplayer() && !AuthorisedKeys.KEYS.containsKey(player.getName().getString())) {
+        if (!server.isSingleplayer()
+                && !AuthorisedKeys.KEYS.containsKey(player.getName().getString())) {
             ServerConfig.print("noKeyBannerHeader", (msg) -> player.sendMessage(Text.of(msg)));
             ServerConfig.print("noKeyBannerInfo", (msg) -> player.sendMessage(Text.of(msg)));
-            ServerConfig.print("noKeyBannerHint", (msg) -> player.sendMessage(Text.literal(msg).setStyle(Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("Click --> /offauth bind"))).withClickEvent(new ClickEvent.RunCommand("/offauth bind")))));
+            ServerConfig.print(
+                    "noKeyBannerHint",
+                    (msg) -> player.sendMessage(Text.literal(msg)
+                            .setStyle(Style.EMPTY
+                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click --> /offauth bind")))
+                                    .withClickEvent(new ClickEvent.RunCommand("/offauth bind")))));
 
-            if (!ServerConfig.allowsUnboundUsers() && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
+            if (!ServerConfig.allowsUnboundUsers()
+                    && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
                 ServerConfig.print("noKeyGrace", (msg) -> player.sendMessage(Text.of(msg)));
         }
     }
@@ -104,12 +110,14 @@ public class MCOfflineAuth implements ModInitializer {
         UNBOUND_USER_GRACES.removeExpired();
         KEY_CHANGE_REQUESTS.removeExpired();
 
-        KEY_CHANGE_REQUESTS.takeAcceptedRequests().ifPresent(entries -> entries.forEach(entry -> {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
-            if (player != null) {
-                bindUserKey(player, entry.getValue());
-            }
-        }));
+        KEY_CHANGE_REQUESTS
+                .takeAcceptedRequests()
+                .ifPresent(entries -> entries.forEach(entry -> {
+                    ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+                    if (player != null) {
+                        bindUserKey(player, entry.getValue());
+                    }
+                }));
     }
 
     private static void showEscapeOfAccountability() {
@@ -121,9 +129,15 @@ public class MCOfflineAuth implements ModInitializer {
 
     static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
         switch (AuthorisedKeys.bind(player.getName().getString(), KeyEncode.encodePublic(key), true)) {
-            case INSERTED -> player.sendMessage(Text.literal("Your new key has been bound to your username!").formatted(Formatting.GREEN));
-            case IDENTICAL -> player.sendMessage(Text.literal("You have already bound this key.").formatted(Formatting.RED));
-            case REPLACED -> player.sendMessage(Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
+            case INSERTED ->
+                player.sendMessage(Text.literal("Your new key has been bound to your username!")
+                        .formatted(Formatting.GREEN));
+            case IDENTICAL ->
+                player.sendMessage(
+                        Text.literal("You have already bound this key.").formatted(Formatting.RED));
+            case REPLACED ->
+                player.sendMessage(
+                        Text.literal("Rebound your new key to your username!").formatted(Formatting.GREEN));
         }
     }
 
@@ -132,8 +146,11 @@ public class MCOfflineAuth implements ModInitializer {
 
         server.execute(() -> server.getPlayerManager().getPlayerList().forEach(player -> {
             if (checkPrivilege(player, 1)) {
-                var style = Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
-                player.sendMessage(Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason)).setStyle(style));
+                var style = Style.EMPTY.withHoverEvent(
+                        new HoverEvent.ShowText(Text.literal("MCOfflineAuth rejected this player.")));
+                player.sendMessage(
+                        Text.literal(ServerConfig.message("rejectWarn").formatted(user, reason))
+                                .setStyle(style));
             }
         }));
     }
@@ -200,7 +217,9 @@ public class MCOfflineAuth implements ModInitializer {
             String username = profile.name();
 
             if (!context.canSend(LoginChallengePayload.ID)) {
-                context.handler().onDisconnected(new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
+                context.handler()
+                        .onDisconnected(
+                                new DisconnectionInfo(Text.of("Client does not have MCOfflineAuth installed.")));
                 warn_unauthorised_login(context.server(), username, "doesn't have MCOA mod");
                 context.handler().disconnect(Text.of(ServerConfig.message("accessDenied")));
                 return false;
@@ -213,7 +232,10 @@ public class MCOfflineAuth implements ModInitializer {
         }
     }
 
-    static class LoginResponseReceiver implements PacketReceiver<lol.bai.badpackets.api.config.ServerConfigContext, balls.jl.mcofflineauth.net.LoginResponsePayload> {
+    static class LoginResponseReceiver
+            implements PacketReceiver<
+                    lol.bai.badpackets.api.config.ServerConfigContext,
+                    balls.jl.mcofflineauth.net.LoginResponsePayload> {
 
         @Override
         public void receive(ServerConfigContext context, LoginResponsePayload payload) {
@@ -228,7 +250,8 @@ public class MCOfflineAuth implements ModInitializer {
             SocketAddress thisAddress = context.handler().connection.getAddress();
             if (thisAddress != state.address()) {
                 LOGGER.warn("Challenge for {} does not belong to {}", state.user(), thisAddress);
-                context.handler().disconnect(Text.literal("Internal error occurred: answered challenge for wrong address."));
+                context.handler()
+                        .disconnect(Text.literal("Internal error occurred: answered challenge for wrong address."));
             }
 
             if (!AuthorisedKeys.KEYS.containsKey(state.user())) {
@@ -238,7 +261,9 @@ public class MCOfflineAuth implements ModInitializer {
                 if (ServerConfig.allowsUnboundUsers()) return;
 
                 if (UNBOUND_USER_GRACES.isHeld(state.user())) {
-                    LOGGER.warn("Unbound users cannot join but user {} will be exempted via unbind grace period.", state.user());
+                    LOGGER.warn(
+                            "Unbound users cannot join but user {} will be exempted via unbind grace period.",
+                            state.user());
                     return;
                 }
 
@@ -248,7 +273,8 @@ public class MCOfflineAuth implements ModInitializer {
                 return;
             }
 
-            if (!AuthorisedKeys.verifySignature(state.user(), state.data(), Uuids.toByteArray(payload.id), payload.signature)) {
+            if (!AuthorisedKeys.verifySignature(
+                    state.user(), state.data(), Uuids.toByteArray(payload.id), payload.signature)) {
                 warn_unauthorised_login(context.server(), state.user(), "wrong signature/key; can't verify identity");
                 context.handler().disconnect(Text.of(ServerConfig.message("wrongIdentity")));
                 return;
@@ -258,7 +284,9 @@ public class MCOfflineAuth implements ModInitializer {
         }
     }
 
-    static class PubkeyBindReceiver implements PacketReceiver<lol.bai.badpackets.api.play.ServerPlayContext, balls.jl.mcofflineauth.net.PubkeyBindPayload> {
+    static class PubkeyBindReceiver
+            implements PacketReceiver<
+                    lol.bai.badpackets.api.play.ServerPlayContext, balls.jl.mcofflineauth.net.PubkeyBindPayload> {
 
         @Override
         public void receive(ServerPlayContext context, PubkeyBindPayload payload) {
@@ -266,30 +294,31 @@ public class MCOfflineAuth implements ModInitializer {
                 ServerPlayerEntity player = context.player();
                 String actualName = player.getName().getString();
 
-
                 if (!Objects.equals(payload.user, actualName)) {
                     if (StringHelper.isValidPlayerName(payload.user))
                         LOGGER.warn("Username {} does not match the user who sent it ({})!", payload.user, actualName);
-                    else
-                        LOGGER.warn("Username provided by user {} is not a valid player name!", actualName);
+                    else LOGGER.warn("Username provided by user {} is not a valid player name!", actualName);
 
-                    player.sendMessage(Text.literal("Internal error occurred trying to bind key.").formatted(Formatting.RED));
+                    player.sendMessage(Text.literal("Internal error occurred trying to bind key.")
+                            .formatted(Formatting.RED));
                     return;
                 }
 
                 if (ServerConfig.changesRequireApproval() && !checkPrivilege(player)) {
-                    player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
+                    player.sendMessage(
+                            Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
                     context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
                         if (checkPrivilege(otherPlayer))
-                            otherPlayer.sendMessage(
-                                    Text.literal("§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
-                                            .formatted(actualName, actualName))
-                                            .setStyle(Style.EMPTY
-                                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
-                                                    .withClickEvent(new ClickEvent.RunCommand("/offauth approve %s".formatted(actualName)))));
+                            otherPlayer.sendMessage(Text.literal(
+                                            "§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
+                                                    .formatted(actualName, actualName))
+                                    .setStyle(Style.EMPTY
+                                            .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
+                                            .withClickEvent(new ClickEvent.RunCommand(
+                                                    "/offauth approve %s".formatted(actualName)))));
                     });
                     KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
-                }  else {
+                } else {
                     bindUserKey(player, payload.publicKey);
                 }
             });

@@ -1,20 +1,19 @@
 package balls.jl.mcofflineauth;
 
+import static balls.jl.mcofflineauth.Constants.*;
+
 import balls.jl.mcofflineauth.util.AuthorisedKeysSerialise;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.util.JsonHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static balls.jl.mcofflineauth.Constants.*;
+import net.minecraft.util.JsonHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AuthorisedKeys {
     public static final ConcurrentHashMap<String, PublicKey> KEYS = new ConcurrentHashMap<>();

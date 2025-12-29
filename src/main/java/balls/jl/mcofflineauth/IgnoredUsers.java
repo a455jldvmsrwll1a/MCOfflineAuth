@@ -1,21 +1,20 @@
 package balls.jl.mcofflineauth;
 
+import static balls.jl.mcofflineauth.Constants.IGNORED_USERS_PATH;
+import static balls.jl.mcofflineauth.Constants.MOD_DIR;
+
 import balls.jl.mcofflineauth.util.IgnoredUsersSerialise;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.util.JsonHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static balls.jl.mcofflineauth.Constants.IGNORED_USERS_PATH;
-import static balls.jl.mcofflineauth.Constants.MOD_DIR;
+import net.minecraft.util.JsonHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IgnoredUsers {
     private static final Set<String> IGNORED_USERNAMES = ConcurrentHashMap.newKeySet();
@@ -63,8 +62,12 @@ public class IgnoredUsers {
     public static void write() {
         try {
             Files.createDirectories(MOD_DIR);
-            Files.writeString(IGNORED_USERS_PATH, IgnoredUsersSerialise.serialiseIgnored(IGNORED_USERNAMES, IGNORED_UUIDS));
-            LOGGER.info("Wrote {} ignored names, {} ignored uuids to disk.", IGNORED_USERNAMES.size(), IGNORED_UUIDS.size());
+            Files.writeString(
+                    IGNORED_USERS_PATH, IgnoredUsersSerialise.serialiseIgnored(IGNORED_USERNAMES, IGNORED_UUIDS));
+            LOGGER.info(
+                    "Wrote {} ignored names, {} ignored uuids to disk.",
+                    IGNORED_USERNAMES.size(),
+                    IGNORED_UUIDS.size());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -77,8 +80,7 @@ public class IgnoredUsers {
      */
     public static boolean ignoreUsername(String username) {
         boolean changed = IGNORED_USERNAMES.add(username);
-        if (changed)
-            write();
+        if (changed) write();
         return changed;
     }
 
@@ -89,8 +91,7 @@ public class IgnoredUsers {
      */
     public static boolean ignoreUUID(UUID player) {
         boolean changed = IGNORED_UUIDS.add(player);
-        if (changed)
-            write();
+        if (changed) write();
         return changed;
     }
 
@@ -101,8 +102,7 @@ public class IgnoredUsers {
      */
     public static boolean unignoreUsername(String username) {
         boolean changed = IGNORED_USERNAMES.remove(username);
-        if (changed)
-            write();
+        if (changed) write();
         return changed;
     }
 
@@ -113,8 +113,7 @@ public class IgnoredUsers {
      */
     public static boolean unignoreUUID(UUID player) {
         boolean changed = IGNORED_UUIDS.remove(player);
-        if (changed)
-            write();
+        if (changed) write();
         return changed;
     }
 

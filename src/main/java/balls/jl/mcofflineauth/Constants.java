@@ -1,10 +1,9 @@
 package balls.jl.mcofflineauth;
 
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.util.Identifier;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.Identifier;
 
 public class Constants {
     public static final String MOD_ID = "mc-offline-auth";

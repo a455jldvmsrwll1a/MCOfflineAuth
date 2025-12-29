@@ -1,7 +1,6 @@
 package balls.jl.mcofflineauth.util;
 
 import balls.jl.mcofflineauth.Constants;
-
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;

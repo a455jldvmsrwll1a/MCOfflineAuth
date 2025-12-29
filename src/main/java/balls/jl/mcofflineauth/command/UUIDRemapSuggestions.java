@@ -6,14 +6,15 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.server.command.ServerCommandSource;
-
 import java.util.concurrent.CompletableFuture;
+import net.minecraft.server.command.ServerCommandSource;
 
 public class UUIDRemapSuggestions implements SuggestionProvider<ServerCommandSource> {
     @Override
-    public CompletableFuture<Suggestions> getSuggestions(CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
-        UUIDRemap.REMAPS.forEach((src, dest) -> builder.suggest(src.toString(), new LiteralMessage("%s -> %s".formatted(src, dest))));
+    public CompletableFuture<Suggestions> getSuggestions(
+            CommandContext<ServerCommandSource> context, SuggestionsBuilder builder) {
+        UUIDRemap.REMAPS.forEach(
+                (src, dest) -> builder.suggest(src.toString(), new LiteralMessage("%s -> %s".formatted(src, dest))));
         return builder.buildFuture();
     }
 }

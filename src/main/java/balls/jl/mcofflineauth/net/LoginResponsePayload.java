@@ -1,19 +1,19 @@
 package balls.jl.mcofflineauth.net;
 
+import static balls.jl.mcofflineauth.Constants.LOGIN_RESPONSE_PACKET_ID;
+
+import java.util.UUID;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
-
-import java.util.UUID;
-
-import static balls.jl.mcofflineauth.Constants.LOGIN_RESPONSE_PACKET_ID;
 
 /**
  * Client's response to the server, providing the signature for the challenge data.
  */
 public class LoginResponsePayload implements CustomPayload {
     public static final CustomPayload.Id<LoginResponsePayload> ID = new CustomPayload.Id<>(LOGIN_RESPONSE_PACKET_ID);
-    public static final PacketCodec<PacketByteBuf, LoginResponsePayload> CODEC = PacketCodec.of(LoginResponsePayload::write, LoginResponsePayload::new);
+    public static final PacketCodec<PacketByteBuf, LoginResponsePayload> CODEC =
+            PacketCodec.of(LoginResponsePayload::write, LoginResponsePayload::new);
 
     public final UUID id;
     public final byte[] signature;

@@ -1,11 +1,17 @@
 package balls.jl.mcofflineauth.command;
 
+import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
+import static net.minecraft.server.command.CommandManager.argument;
+import static net.minecraft.server.command.CommandManager.literal;
+
 import balls.jl.mcofflineauth.*;
 import balls.jl.mcofflineauth.net.PubkeyQueryPayload;
 import balls.jl.mcofflineauth.util.KeyEncode;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import java.util.Objects;
+import java.util.UUID;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.UuidArgumentType;
@@ -19,13 +25,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
-import java.util.UUID;
-
-import static balls.jl.mcofflineauth.AuthorisedKeys.KEYS;
-import static net.minecraft.server.command.CommandManager.argument;
-import static net.minecraft.server.command.CommandManager.literal;
 
 public class Commands {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -42,120 +41,76 @@ public class Commands {
 
         dispatcher.register(literal("offauth")
                 .executes(Commands::printModInfo)
-                .then(literal("help")
-                        .executes(Commands::printHelp)
-                )
+                .then(literal("help").executes(Commands::printHelp))
                 .then(literal("info")
                         .executes(Commands::showStatusInfo)
                         .then(argument("user", StringArgumentType.word())
-                            .requires(MCOfflineAuth::checkPrivilege)
-                            .suggests(new PlayerSuggestions())
-                            .executes(Commands::showUserInfo)
-                        )
-                )
-                .then(literal("enable")
-                        .requires(MCOfflineAuth::checkPrivilege)
-                        .executes(Commands::enableMod)
-                )
-                .then(literal("reload")
-                        .requires(MCOfflineAuth::checkPrivilege)
-                        .executes(Commands::reloadModConfig)
-                )
-                .then(literal("disable")
-                        .requires(MCOfflineAuth::checkPrivilege)
-                        .executes(Commands::disableMod)
-                )
+                                .requires(MCOfflineAuth::checkPrivilege)
+                                .suggests(new PlayerSuggestions())
+                                .executes(Commands::showUserInfo)))
+                .then(literal("enable").requires(MCOfflineAuth::checkPrivilege).executes(Commands::enableMod))
+                .then(literal("reload").requires(MCOfflineAuth::checkPrivilege).executes(Commands::reloadModConfig))
+                .then(literal("disable").requires(MCOfflineAuth::checkPrivilege).executes(Commands::disableMod))
                 .then(literal("bind")
                         .executes(Commands::bindSelf)
                         .then(argument("user", StringArgumentType.word())
                                 .requires(MCOfflineAuth::checkPrivilege)
                                 .suggests(new PlayerSuggestions())
                                 .then(argument("public-key", StringArgumentType.word())
-                                        .executes(Commands::bindOthers)
-                                )
-                        )
-                )
+                                        .executes(Commands::bindOthers))))
                 .then(literal("unbind")
                         .executes(Commands::unbindSelf)
                         .then(argument("user", StringArgumentType.word())
                                 .requires(MCOfflineAuth::checkPrivilege)
                                 .suggests(new BoundPlayerSuggestions())
-                                .executes(Commands::unbindOthers)
-                        )
-                )
+                                .executes(Commands::unbindOthers)))
                 .then(literal("grace")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(argument("user", StringArgumentType.word())
                                 .suggests(new BoundPlayerSuggestions())
-                                .executes(Commands::grantGracePeriod)
-                        )
-                )
+                                .executes(Commands::grantGracePeriod)))
                 .then(literal("ignore")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(literal("uuid")
-                                .then(argument("uuid", UuidArgumentType.uuid())
-                                        .executes(Commands::ignoreUUID)
-                                )
-                        )
+                                .then(argument("uuid", UuidArgumentType.uuid()).executes(Commands::ignoreUUID)))
                         .then(literal("name")
                                 .then(argument("name", StringArgumentType.word())
-                                        .executes(Commands::ignoreUsername)
-                                )
-                        )
-                )
+                                        .executes(Commands::ignoreUsername))))
                 .then(literal("unignore")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(literal("uuid")
                                 .then(argument("uuid", UuidArgumentType.uuid())
                                         .suggests(new IgnoredUuidSuggestions())
-                                        .executes(Commands::unignoreUUID)
-                                )
-                        )
+                                        .executes(Commands::unignoreUUID)))
                         .then(literal("name")
                                 .then(argument("name", StringArgumentType.word())
                                         .suggests(new IgnoredUsernameSuggestions())
-                                        .executes(Commands::unignoreUsername)
-                                )
-                        )
-                )
+                                        .executes(Commands::unignoreUsername))))
                 .then(literal("approve")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(argument("name", StringArgumentType.word())
                                 .suggests(new RequestPendingSuggestions())
-                                .executes(Commands::approveRequest)
-                        )
-                )
+                                .executes(Commands::approveRequest)))
                 .then(literal("reject")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(argument("name", StringArgumentType.word())
                                 .suggests(new RequestPendingSuggestions())
-                                .executes(Commands::rejectRequest)
-                        )
-                )
+                                .executes(Commands::rejectRequest)))
                 .then(literal("uuid")
                         .requires(MCOfflineAuth::checkPrivilege)
                         .then(literal("list")
                                 .executes(Commands::listUUIDRemaps)
                                 .then(argument("uuid_src", UuidArgumentType.uuid())
                                         .suggests(new UUIDRemapSuggestions())
-                                        .executes(Commands::showUUIDRemap)
-                                )
-                        )
+                                        .executes(Commands::showUUIDRemap)))
                         .then(literal("map")
                                 .then(argument("uuid_from", UuidArgumentType.uuid())
                                         .then(argument("uuid_to", UuidArgumentType.uuid())
-                                                .executes(Commands::setupUUIDRemap)
-                                        )
-                                )
-                        )
+                                                .executes(Commands::setupUUIDRemap))))
                         .then(literal("unmap")
                                 .then(argument("uuid_from", UuidArgumentType.uuid())
                                         .suggests(new UUIDRemapSuggestions())
-                                        .executes(Commands::eraseUUIDRemap)
-                                )
-                        )
-                )
-        );
+                                        .executes(Commands::eraseUUIDRemap)))));
     }
 
     private static int printModInfo(CommandContext<ServerCommandSource> context) {
@@ -238,19 +193,16 @@ public class Commands {
         var src = context.getSource();
 
         if (ServerConfig.isEnforcing()) {
-            if (src.isExecutedByPlayer())
-                src.sendFeedback(() -> Text.literal("Authentication: §a§lENFORCED§r"), false);
+            if (src.isExecutedByPlayer()) src.sendFeedback(() -> Text.literal("Authentication: §a§lENFORCED§r"), false);
             else src.sendFeedback(() -> Text.literal("Authentication: ENFORCED"), false);
         } else {
-            if (src.isExecutedByPlayer())
-                src.sendFeedback(() -> Text.literal("Authentication: §c§lSTANDBY§r"), false);
+            if (src.isExecutedByPlayer()) src.sendFeedback(() -> Text.literal("Authentication: §c§lSTANDBY§r"), false);
             else src.sendFeedback(() -> Text.literal("Authentication: STANDBY"), false);
         }
 
         StringBuilder listSb = new StringBuilder();
 
-        if (src.isExecutedByPlayer())
-            listSb.append("§e%s§r users in the database:\n".formatted(KEYS.size()));
+        if (src.isExecutedByPlayer()) listSb.append("§e%s§r users in the database:\n".formatted(KEYS.size()));
         else listSb.append("%s users in the database:\n".formatted(KEYS.size()));
 
         KEYS.forEach((user, key) -> {
@@ -273,27 +225,19 @@ public class Commands {
             String key = KeyEncode.encodePublic(entry);
             if (src.isExecutedByPlayer())
                 src.sendFeedback(
-                        () -> Text.literal(
-                                        "User \"%s\" has key: §b%s§r".formatted(user, key))
+                        () -> Text.literal("User \"%s\" has key: §b%s§r".formatted(user, key))
                                 .setStyle(Style.EMPTY
-                                        .withHoverEvent(new HoverEvent.ShowText(
-                                                Text.literal("Copy to clipboard.")))
-                                        .withClickEvent(
-                                                new ClickEvent.CopyToClipboard(key))),
+                                        .withHoverEvent(new HoverEvent.ShowText(Text.literal("Copy to clipboard.")))
+                                        .withClickEvent(new ClickEvent.CopyToClipboard(key))),
                         false);
-            else
-                src.sendFeedback(
-                        () -> Text.literal("User \"%s\" has key: %s".formatted(user, key)),
-                        false);
+            else src.sendFeedback(() -> Text.literal("User \"%s\" has key: %s".formatted(user, key)), false);
         } else {
             src.sendFeedback(
                     () -> Text.literal("User \"%s\" has no bound key.".formatted(user))
                             .formatted(Formatting.RED),
                     false);
             src.sendFeedback(
-                    () -> Text.literal(
-                            "You can bind a key by running /offauth bind %s <pubKey>."
-                                    .formatted(user)),
+                    () -> Text.literal("You can bind a key by running /offauth bind %s <pubKey>.".formatted(user)),
                     false);
         }
 
@@ -313,9 +257,7 @@ public class Commands {
         LOGGER.info("Offline Auth now enforcing.");
         context.getSource()
                 .sendFeedback(
-                        () -> Text.literal("MC Offline Auth is now ENFORCING.")
-                                .formatted(Formatting.BLUE),
-                        true);
+                        () -> Text.literal("MC Offline Auth is now ENFORCING.").formatted(Formatting.BLUE), true);
         return OK;
     }
 
@@ -332,9 +274,7 @@ public class Commands {
         LOGGER.warn("Offline auth now on standby.");
         context.getSource()
                 .sendFeedback(
-                        () -> Text.literal("MC Offline Auth is now ON STANDBY.")
-                                .formatted(Formatting.DARK_RED),
-                        true);
+                        () -> Text.literal("MC Offline Auth is now ON STANDBY.").formatted(Formatting.DARK_RED), true);
         return OK;
     }
 
@@ -345,10 +285,7 @@ public class Commands {
         AuthorisedKeys.read();
         UUIDRemap.read();
         context.getSource()
-                .sendFeedback(
-                        () -> Text.literal("MCOfflineAuth reloaded!.")
-                                .formatted(Formatting.GRAY),
-                        true);
+                .sendFeedback(() -> Text.literal("MCOfflineAuth reloaded!.").formatted(Formatting.GRAY), true);
         return OK;
     }
 
@@ -357,22 +294,16 @@ public class Commands {
         if (player == null) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                    "Binding without specifying a user can only be done by"
-                                            + " players."),
+                            () -> Text.literal("Binding without specifying a user can only be done by" + " players."),
                             false);
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal(
-                                    "Use /offauth bind <user> <key> to bind a specific user."),
-                            false);
+                    .sendFeedback(() -> Text.literal("Use /offauth bind <user> <key> to bind a specific user."), false);
             return FAIL;
         }
 
         context.getSource()
                 .sendFeedback(
-                        () -> Text.literal("Trying to bind key; this won't work without the mod"
-                                        + " installed.")
+                        () -> Text.literal("Trying to bind key; this won't work without the mod" + " installed.")
                                 .formatted(Formatting.GRAY),
                         false);
         ServerPlayNetworking.send(player, new PubkeyQueryPayload());
@@ -386,48 +317,37 @@ public class Commands {
         try {
             switch (AuthorisedKeys.bind(user, key, true)) {
                 case INSERTED ->
-                        context.getSource()
-                                .sendFeedback(
-                                        () -> Text.literal("Bound key to user %s."
-                                                        .formatted(user))
-                                                .formatted(Formatting.GREEN),
-                                        true);
+                    context.getSource()
+                            .sendFeedback(
+                                    () -> Text.literal("Bound key to user %s.".formatted(user))
+                                            .formatted(Formatting.GREEN),
+                                    true);
                 case IDENTICAL ->
-                        context.getSource()
-                                .sendFeedback(
-                                        () -> Text.literal(
-                                                        "This key is already bound to"
-                                                                + " user %s")
-                                                .formatted(Formatting.RED),
-                                        false);
+                    context.getSource()
+                            .sendFeedback(
+                                    () -> Text.literal("This key is already bound to" + " user %s")
+                                            .formatted(Formatting.RED),
+                                    false);
                 case REPLACED ->
-                        context.getSource()
-                                .sendFeedback(
-                                        () -> Text.literal(
-                                                        "Replaced the key bound to user %s."
-                                                                .formatted(user))
-                                                .formatted(Formatting.GREEN),
-                                        true);
+                    context.getSource()
+                            .sendFeedback(
+                                    () -> Text.literal("Replaced the key bound to user %s.".formatted(user))
+                                            .formatted(Formatting.GREEN),
+                                    true);
             }
             return OK;
         } catch (IllegalArgumentException e) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("!! Provided public key is invalid!"
-                                            + " Error:")
+                            () -> Text.literal("!! Provided public key is invalid!" + " Error:")
                                     .formatted(Formatting.RED),
                             false);
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("!! %s".formatted(e.toString()))
-                                    .formatted(Formatting.DARK_GRAY),
-                            false);
+                            () -> Text.literal("!! %s".formatted(e.toString())).formatted(Formatting.DARK_GRAY), false);
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                    "!! Tip: make sure you copy-pasted the full"
-                                            + " public key."),
-                            false);
+                            () -> Text.literal("!! Tip: make sure you copy-pasted the full" + " public key."), false);
             return FAIL;
         }
     }
@@ -437,15 +357,10 @@ public class Commands {
         if (player == null) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                    "Unbinding without specifying a user can only be done by"
-                                            + " players."),
+                            () -> Text.literal("Unbinding without specifying a user can only be done by" + " players."),
                             false);
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal(
-                                    "Use /offauth unbind <user> to unbind a specific user."),
-                            false);
+                    .sendFeedback(() -> Text.literal("Use /offauth unbind <user> to unbind a specific user."), false);
             return FAIL;
         }
 
@@ -453,18 +368,13 @@ public class Commands {
         if (AuthorisedKeys.unbind(user, true)) {
             MCOfflineAuth.UNBOUND_USER_GRACES.hold(user);
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("Unbound your key.")
-                                    .formatted(Formatting.GREEN),
-                            true);
+                    .sendFeedback(() -> Text.literal("Unbound your key.").formatted(Formatting.GREEN), true);
             if (!ServerConfig.allowsUnboundUsers())
                 context.getSource()
                         .sendFeedback(
                                 () -> Text.literal(
                                                 "The server will reject users without a key, but you have a %ss grace period to bind again."
-                                                        .formatted(
-                                                                ServerConfig
-                                                                        .getUnboundUserGracePeriod()))
+                                                        .formatted(ServerConfig.getUnboundUserGracePeriod()))
                                         .formatted(Formatting.GOLD),
                                 false);
             return OK;
@@ -485,14 +395,12 @@ public class Commands {
             AuthorisedKeys.clear(true);
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Unbound ALL users!")
-                                    .formatted(Formatting.GREEN, Formatting.BOLD),
+                            () -> Text.literal("Unbound ALL users!").formatted(Formatting.GREEN, Formatting.BOLD),
                             true);
             if (!ServerConfig.allowsUnboundUsers())
                 context.getSource()
                         .sendFeedback(
-                                () -> Text.literal("Note: unbind grace periods do not apply"
-                                                + " here.")
+                                () -> Text.literal("Note: unbind grace periods do not apply" + " here.")
                                         .formatted(Formatting.GOLD),
                                 false);
             return OK;
@@ -508,20 +416,15 @@ public class Commands {
             if (!ServerConfig.allowsUnboundUsers())
                 context.getSource()
                         .sendFeedback(
-                                () -> Text.literal(
-                                                "Note: there is a %ss grace period where user %s can still join."
-                                                        .formatted(
-                                                                ServerConfig
-                                                                        .getUnboundUserGracePeriod(),
-                                                                user))
+                                () -> Text.literal("Note: there is a %ss grace period where user %s can still join."
+                                                .formatted(ServerConfig.getUnboundUserGracePeriod(), user))
                                         .formatted(Formatting.GOLD),
                                 false);
             return OK;
         } else {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("No such user %s has a key bound."
-                                            .formatted(user))
+                            () -> Text.literal("No such user %s has a key bound.".formatted(user))
                                     .formatted(Formatting.RED),
                             false);
             return FAIL;
@@ -535,19 +438,14 @@ public class Commands {
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal("Set grace period of %ss."
-                                            .formatted(
-                                                    ServerConfig
-                                                            .getUnboundUserGracePeriod()))
+                                            .formatted(ServerConfig.getUnboundUserGracePeriod()))
                                     .formatted(Formatting.GREEN),
                             true);
         else
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal("Set grace period of %ss for user %s."
-                                            .formatted(
-                                                    ServerConfig
-                                                            .getUnboundUserGracePeriod(),
-                                                    user))
+                                            .formatted(ServerConfig.getUnboundUserGracePeriod(), user))
                                     .formatted(Formatting.GREEN),
                             true);
 
@@ -566,9 +464,7 @@ public class Commands {
         } else {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                            "Player %s will be exempt from authentication."
-                                                    .formatted(uuid))
+                            () -> Text.literal("Player %s will be exempt from authentication.".formatted(uuid))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
@@ -580,15 +476,12 @@ public class Commands {
         if (!IgnoredUsers.ignoreUsername(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("This username is already in the"
-                                            + " ignore list.")
+                            () -> Text.literal("This username is already in the" + " ignore list.")
                                     .formatted(Formatting.RED),
                             false);
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                            "Player %s will be exempt from authentication."
-                                                    .formatted(name))
+                            () -> Text.literal("Player %s will be exempt from authentication.".formatted(name))
                                     .formatted(Formatting.GREEN),
                             true);
             return FAIL;
@@ -602,8 +495,7 @@ public class Commands {
         if (!IgnoredUsers.unignoreUUID(uuid)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                            "This UUID is not in the ignore list.")
+                            () -> Text.literal("This UUID is not in the ignore list.")
                                     .formatted(Formatting.RED),
                             false);
             return FAIL;
@@ -611,8 +503,7 @@ public class Commands {
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal(
-                                            "Player %s will no longer be exempt from authentication."
-                                                    .formatted(uuid))
+                                            "Player %s will no longer be exempt from authentication.".formatted(uuid))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
@@ -624,8 +515,7 @@ public class Commands {
         if (!IgnoredUsers.unignoreUsername(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("This username is not in the ignore"
-                                            + " list.")
+                            () -> Text.literal("This username is not in the ignore" + " list.")
                                     .formatted(Formatting.RED),
                             false);
             return FAIL;
@@ -633,8 +523,7 @@ public class Commands {
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal(
-                                            "Player %s will no longer be exempt from authentication."
-                                                    .formatted(name))
+                                            "Player %s will no longer be exempt from authentication.".formatted(name))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
@@ -646,17 +535,12 @@ public class Commands {
         if (MCOfflineAuth.KEY_CHANGE_REQUESTS.approveUser(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Approved %s!".formatted(name))
-                                    .formatted(Formatting.GREEN),
-                            false);
-            ServerPlayerEntity rejectedPlayer = context.getSource()
-                    .getServer()
-                    .getPlayerManager()
-                    .getPlayer(name);
+                            () -> Text.literal("Approved %s!".formatted(name)).formatted(Formatting.GREEN), false);
+            ServerPlayerEntity rejectedPlayer =
+                    context.getSource().getServer().getPlayerManager().getPlayer(name);
             if (rejectedPlayer != null) {
                 rejectedPlayer.sendMessage(
-                        Text.literal("Your bind request has been approved.")
-                                .formatted(Formatting.GREEN));
+                        Text.literal("Your bind request has been approved.").formatted(Formatting.GREEN));
             }
 
             LOGGER.info(
@@ -666,10 +550,7 @@ public class Commands {
             return OK;
         } else {
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("No such request.")
-                                    .formatted(Formatting.RED),
-                            false);
+                    .sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
             return FAIL;
         }
     }
@@ -679,30 +560,19 @@ public class Commands {
         if (MCOfflineAuth.KEY_CHANGE_REQUESTS.rejectUser(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Rejected %s!".formatted(name))
-                                    .formatted(Formatting.DARK_AQUA),
-                            false);
-            ServerPlayerEntity rejectedPlayer = context.getSource()
-                    .getServer()
-                    .getPlayerManager()
-                    .getPlayer(name);
+                            () -> Text.literal("Rejected %s!".formatted(name)).formatted(Formatting.DARK_AQUA), false);
+            ServerPlayerEntity rejectedPlayer =
+                    context.getSource().getServer().getPlayerManager().getPlayer(name);
             if (rejectedPlayer != null) {
                 rejectedPlayer.sendMessage(
-                        Text.literal("Your bind request has been rejected.")
-                                .formatted(Formatting.RED));
+                        Text.literal("Your bind request has been rejected.").formatted(Formatting.RED));
             }
 
-            LOGGER.info(
-                    "{} rejected bind request for {}.",
-                    context.getSource().getName(),
-                    name);
+            LOGGER.info("{} rejected bind request for {}.", context.getSource().getName(), name);
             return OK;
         } else {
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("No such request.")
-                                    .formatted(Formatting.RED),
-                            false);
+                    .sendFeedback(() -> Text.literal("No such request.").formatted(Formatting.RED), false);
             return FAIL;
         }
     }
@@ -733,23 +603,17 @@ public class Commands {
         if (dest != null) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("This UUID is remapped to %s"
-                                            .formatted(dest))
+                            () -> Text.literal("This UUID is remapped to %s".formatted(dest))
                                     .formatted(Formatting.GREEN)
                                     .setStyle(Style.EMPTY
-                                            .withHoverEvent(new HoverEvent.ShowText(
-                                                    Text.literal(
-                                                            "Copy to clipboard.")))
-                                            .withClickEvent(
-                                                    new ClickEvent.CopyToClipboard(
-                                                            dest.toString()))),
+                                            .withHoverEvent(new HoverEvent.ShowText(Text.literal("Copy to clipboard.")))
+                                            .withClickEvent(new ClickEvent.CopyToClipboard(dest.toString()))),
                             true);
             return OK;
         } else {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal(
-                                            "This UUID is not remapped to anything")
+                            () -> Text.literal("This UUID is not remapped to anything")
                                     .formatted(Formatting.RED),
                             true);
             return FAIL;
@@ -762,10 +626,7 @@ public class Commands {
 
         UUIDRemap.map(src, dest, true);
         context.getSource()
-                .sendFeedback(
-                        () -> Text.literal("UUID mapping updated.")
-                                .formatted(Formatting.GREEN),
-                        true);
+                .sendFeedback(() -> Text.literal("UUID mapping updated.").formatted(Formatting.GREEN), true);
         return OK;
     }
 
@@ -774,17 +635,11 @@ public class Commands {
 
         if (UUIDRemap.unmap(src, true)) {
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("UUID mapping removed.")
-                                    .formatted(Formatting.GREEN),
-                            true);
+                    .sendFeedback(() -> Text.literal("UUID mapping removed.").formatted(Formatting.GREEN), true);
             return OK;
         } else {
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("No such UUID map exists.")
-                                    .formatted(Formatting.RED),
-                            true);
+                    .sendFeedback(() -> Text.literal("No such UUID map exists.").formatted(Formatting.RED), true);
             return FAIL;
         }
     }

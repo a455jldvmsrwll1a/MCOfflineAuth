@@ -5,6 +5,10 @@ import balls.jl.mcofflineauth.IgnoredUsers;
 import balls.jl.mcofflineauth.ServerConfig;
 import balls.jl.mcofflineauth.UUIDRemap;
 import com.mojang.authlib.GameProfile;
+import java.security.PrivateKey;
+import java.util.UUID;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.encryption.NetworkEncryptionUtils;
 import net.minecraft.network.packet.c2s.login.LoginHelloC2SPacket;
@@ -25,26 +29,38 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import java.security.PrivateKey;
-import java.util.UUID;
-
 @Mixin(ServerLoginNetworkHandler.class)
 public abstract class ServerLoginNetworkHandlerMixin {
     @Unique
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
-    @Shadow @Final MinecraftServer server;
-    @Shadow @Final ClientConnection connection;
-    @Shadow @Nullable String profileName;
-    @Shadow @Final private byte[] nonce;
-    @Shadow private ServerLoginNetworkHandler.State state;
+
+    @Shadow
+    @Final
+    MinecraftServer server;
+
+    @Shadow
+    @Final
+    ClientConnection connection;
+
+    @Shadow
+    @Nullable
+    String profileName;
+
+    @Shadow
+    @Final
+    private byte[] nonce;
+
+    @Shadow
+    private ServerLoginNetworkHandler.State state;
+
     @Shadow
     private @org.jspecify.annotations.Nullable GameProfile profile;
+
     @Unique
     private boolean useNormalAuthentication = false;
 
-    @Shadow abstract void startVerify(GameProfile profile);
+    @Shadow
+    abstract void startVerify(GameProfile profile);
 
     @Inject(method = "onHello", at = @At("HEAD"), cancellable = true)
     private void handleIncoming(LoginHelloC2SPacket packet, CallbackInfo ci) {

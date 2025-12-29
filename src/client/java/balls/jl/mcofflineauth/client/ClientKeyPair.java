@@ -1,16 +1,15 @@
 package balls.jl.mcofflineauth.client;
 
-import balls.jl.mcofflineauth.util.KeyEncode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static balls.jl.mcofflineauth.Constants.*;
 
+import balls.jl.mcofflineauth.util.KeyEncode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-
-import static balls.jl.mcofflineauth.Constants.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClientKeyPair {
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);

@@ -1,15 +1,14 @@
 package balls.jl.mcofflineauth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static balls.jl.mcofflineauth.Constants.MOD_DIR;
+import static balls.jl.mcofflineauth.Constants.UUID_REMAPS_PATH;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static balls.jl.mcofflineauth.Constants.MOD_DIR;
-import static balls.jl.mcofflineauth.Constants.UUID_REMAPS_PATH;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UUIDRemap {
     public static final ConcurrentHashMap<UUID, UUID> REMAPS = new ConcurrentHashMap<>();
@@ -37,7 +36,7 @@ public class UUIDRemap {
                 line_num++;
 
                 line = line.trim();
-                if (line.isEmpty() ||  line.startsWith("#")) {
+                if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
 

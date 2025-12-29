@@ -1,15 +1,14 @@
 package balls.jl.mcofflineauth;
 
 import balls.jl.mcofflineauth.net.LoginChallengePayload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.SocketAddress;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChallengeManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);

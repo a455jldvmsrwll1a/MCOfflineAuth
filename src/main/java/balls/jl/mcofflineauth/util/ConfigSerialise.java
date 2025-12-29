@@ -2,11 +2,10 @@ package balls.jl.mcofflineauth.util;
 
 import balls.jl.mcofflineauth.Constants;
 import balls.jl.mcofflineauth.ServerConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigSerialise {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);

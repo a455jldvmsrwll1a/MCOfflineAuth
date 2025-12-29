@@ -2,25 +2,24 @@ package balls.jl.mcofflineauth;
 
 import balls.jl.mcofflineauth.util.ConfigSerialise;
 import balls.jl.mcofflineauth.util.DefaultMessages;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
     private static final ConcurrentHashMap<String, String> MESSAGES = new ConcurrentHashMap<>();
-    private volatile static boolean AUTH_ENFORCING = true;
-    private volatile static boolean KEEP_ENCRYPTION = false;
-    private volatile static boolean ALLOW_UNBOUND_USERS = true;
-    private volatile static boolean PREVENT_LOGIN_KICK = true;
-    private volatile static boolean PREVENT_LOGIN_KICK_UNBOUND = false;
-    private volatile static boolean WARN_UNAUTHORISED_LOGINS = true;
-    private volatile static boolean CHANGES_REQUIRE_APPROVAL = false;
-    private volatile static int UNBOUND_USER_GRACE_PERIOD = 300;
+    private static volatile boolean AUTH_ENFORCING = true;
+    private static volatile boolean KEEP_ENCRYPTION = false;
+    private static volatile boolean ALLOW_UNBOUND_USERS = true;
+    private static volatile boolean PREVENT_LOGIN_KICK = true;
+    private static volatile boolean PREVENT_LOGIN_KICK_UNBOUND = false;
+    private static volatile boolean WARN_UNAUTHORISED_LOGINS = true;
+    private static volatile boolean CHANGES_REQUIRE_APPROVAL = false;
+    private static volatile int UNBOUND_USER_GRACE_PERIOD = 300;
 
     public static boolean isEnforcing() {
         return AUTH_ENFORCING;

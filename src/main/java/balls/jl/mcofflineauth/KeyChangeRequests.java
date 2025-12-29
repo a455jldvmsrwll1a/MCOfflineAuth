@@ -1,14 +1,13 @@
 package balls.jl.mcofflineauth;
 
 import balls.jl.mcofflineauth.util.KeyEncode;
-import org.jspecify.annotations.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KeyChangeRequests {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -55,8 +54,7 @@ public class KeyChangeRequests {
     }
 
     public Optional<List<Map.Entry<String, PublicKey>>> takeAcceptedRequests() {
-        if (acceptedRequests.isEmpty())
-            return Optional.empty();
+        if (acceptedRequests.isEmpty()) return Optional.empty();
 
         List<Map.Entry<String, PublicKey>> requests = new ArrayList<>(acceptedRequests.entrySet());
         acceptedRequests.clear();

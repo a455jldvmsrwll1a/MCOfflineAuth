@@ -2,6 +2,7 @@ package balls.jl.mcofflineauth.mixin;
 
 import balls.jl.mcofflineauth.AuthorisedKeys;
 import balls.jl.mcofflineauth.ServerConfig;
+import java.net.SocketAddress;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
@@ -12,14 +13,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.net.SocketAddress;
-
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
     @Unique
     private final PlayerManager players = (PlayerManager) (Object) this;
 
-    @Inject(method = "checkCanJoin(Ljava/net/SocketAddress;Lnet/minecraft/server/PlayerConfigEntry;)Lnet/minecraft/text/Text;", at = @At("HEAD"), cancellable = true)
+    @Inject(
+            method =
+                    "checkCanJoin(Ljava/net/SocketAddress;Lnet/minecraft/server/PlayerConfigEntry;)Lnet/minecraft/text/Text;",
+            at = @At("HEAD"),
+            cancellable = true)
     private void checkCanJoin(SocketAddress addr, PlayerConfigEntry entry, CallbackInfoReturnable<Text> ret) {
         if (!ServerConfig.isEnforcing()) return;
 
