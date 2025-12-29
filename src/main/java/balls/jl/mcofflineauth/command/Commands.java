@@ -479,14 +479,14 @@ public class Commands {
                             () -> Text.literal("This username is already in the" + " ignore list.")
                                     .formatted(Formatting.RED),
                             false);
-            context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("Player %s will be exempt from authentication.".formatted(name))
-                                    .formatted(Formatting.GREEN),
-                            true);
             return FAIL;
         }
 
+        context.getSource()
+                .sendFeedback(
+                        () -> Text.literal("Player %s will be exempt from authentication.".formatted(name))
+                                .formatted(Formatting.GREEN),
+                        true);
         return OK;
     }
 
