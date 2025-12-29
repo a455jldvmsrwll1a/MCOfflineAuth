@@ -41,7 +41,7 @@ public class UUIDRemap {
                 }
 
                 String[] words = line.split("\\s+");
-                LOGGER.info("DEBUG: words are: {}", (Object) words);
+
                 if (words.length != 2) {
                     throw new Exception("%d tokens found but 2 was expected!".formatted(words.length));
                 }
