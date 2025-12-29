@@ -136,9 +136,8 @@ public class MCOfflineAuth implements ModInitializer {
 
         server.getPlayerManager().getPlayerList().forEach(otherPlayer -> {
             if (MCOfflineAuth.checkPrivilege(otherPlayer, 1)) {
-                otherPlayer.sendMessage(
-                        Text.literal("User %s bound their key.".formatted(player.getStringifiedName()))
-                                .formatted(Formatting.GRAY));
+                otherPlayer.sendMessage(Text.literal("User %s bound their key.".formatted(player.getStringifiedName()))
+                        .formatted(Formatting.GRAY));
             }
         });
     }

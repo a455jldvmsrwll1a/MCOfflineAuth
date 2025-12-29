@@ -9,10 +9,10 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class KeyEncode {
     // ASN.1 DER header in base64.
-    private final static String PREFIX = "MCowBQYDK2VwAyEA";
-    private final static int PREFIX_LENGTH = PREFIX.length();
-    private final static int FULL_LENGTH = 59;
-    private final static int SHORT_LENGTH = FULL_LENGTH - PREFIX_LENGTH;
+    private static final String PREFIX = "MCowBQYDK2VwAyEA";
+    private static final int PREFIX_LENGTH = PREFIX.length();
+    private static final int FULL_LENGTH = 59;
+    private static final int SHORT_LENGTH = FULL_LENGTH - PREFIX_LENGTH;
 
     /// Encode public key as URL-safe base 64 but without trailing '='.
     public static String encodePublic(PublicKey key) {

@@ -1,18 +1,17 @@
 package balls.jl.mcofflineauth;
 
+import static balls.jl.mcofflineauth.MCOfflineAuth.bindUserKey;
+
 import balls.jl.mcofflineauth.util.KeyEncode;
 import java.security.PublicKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static balls.jl.mcofflineauth.MCOfflineAuth.bindUserKey;
 
 public class KeyChangeRequests {
     private static final Logger LOGGER = LoggerFactory.getLogger(Constants.MOD_ID);
@@ -70,7 +69,7 @@ public class KeyChangeRequests {
     }
 
     public void applyAcceptedRequests(MinecraftServer server) {
-        HashMap<String, PublicKey> requests = new HashMap<String, PublicKey>(acceptedRequests);
+        HashMap<String, PublicKey> requests = new HashMap<>(acceptedRequests);
 
         requests.forEach((user, key) -> {
             ServerPlayerEntity player = server.getPlayerManager().getPlayer(user);

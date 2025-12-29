@@ -348,8 +348,7 @@ public class Commands {
                     .sendFeedback(
                             () -> Text.literal("!! %s".formatted(e.toString())).formatted(Formatting.DARK_GRAY), false);
             context.getSource()
-                    .sendFeedback(
-                            () -> Text.literal("!! Tip: make sure you copy-pasted the full public key."), false);
+                    .sendFeedback(() -> Text.literal("!! Tip: make sure you copy-pasted the full public key."), false);
             return FAIL;
         }
     }
