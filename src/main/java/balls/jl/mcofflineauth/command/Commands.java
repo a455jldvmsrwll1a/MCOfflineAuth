@@ -327,7 +327,7 @@ public class Commands {
                 case IDENTICAL ->
                     context.getSource()
                             .sendFeedback(
-                                    () -> Text.literal("This key is already bound to" + " user %s")
+                                    () -> Text.literal("This key is already bound to user %s".formatted(user))
                                             .formatted(Formatting.RED),
                                     false);
                 case REPLACED ->
@@ -341,7 +341,7 @@ public class Commands {
         } catch (IllegalArgumentException e) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("!! Provided public key is invalid!" + " Error:")
+                            () -> Text.literal("!! Provided public key is invalid! Error:")
                                     .formatted(Formatting.RED),
                             false);
             context.getSource()
@@ -349,7 +349,7 @@ public class Commands {
                             () -> Text.literal("!! %s".formatted(e.toString())).formatted(Formatting.DARK_GRAY), false);
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("!! Tip: make sure you copy-pasted the full" + " public key."), false);
+                            () -> Text.literal("!! Tip: make sure you copy-pasted the full public key."), false);
             return FAIL;
         }
     }
@@ -359,7 +359,7 @@ public class Commands {
         if (player == null) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Unbinding without specifying a user can only be done by" + " players."),
+                            () -> Text.literal("Unbinding without specifying a user can only be done by players."),
                             false);
             context.getSource()
                     .sendFeedback(() -> Text.literal("Use /offauth unbind <user> to unbind a specific user."), false);
@@ -411,7 +411,7 @@ public class Commands {
             if (!ServerConfig.allowsUnboundUsers())
                 context.getSource()
                         .sendFeedback(
-                                () -> Text.literal("Note: unbind grace periods do not apply" + " here.")
+                                () -> Text.literal("Note: unbind grace periods do not apply here.")
                                         .formatted(Formatting.GOLD),
                                 false);
             return OK;
@@ -448,14 +448,14 @@ public class Commands {
         if (Objects.equals(user, "--"))
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Set grace period of %ss."
+                            () -> Text.literal("Set grace period of %s seconds."
                                             .formatted(ServerConfig.getUnboundUserGracePeriod()))
                                     .formatted(Formatting.GREEN),
                             true);
         else
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Set grace period of %ss for user %s."
+                            () -> Text.literal("Set grace period of %s seconds for user %s."
                                             .formatted(ServerConfig.getUnboundUserGracePeriod(), user))
                                     .formatted(Formatting.GREEN),
                             true);
