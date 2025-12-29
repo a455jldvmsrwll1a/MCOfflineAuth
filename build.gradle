@@ -1,6 +1,13 @@
 plugins {
     id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
     id 'maven-publish'
+    id 'com.diffplug.spotless' version '8.1.0'
+}
+
+spotless {
+    java {
+        palantirJavaFormat()
+    }
 }
 
 version = project.mod_version
