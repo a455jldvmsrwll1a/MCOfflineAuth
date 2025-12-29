@@ -121,10 +121,12 @@ public class MCOfflineAuth implements ModInitializer {
     }
 
     private static void showEscapeOfAccountability() {
-        LOGGER.warn("DISCLAIMER: This mod is experimental software, it has not undergone");
-        LOGGER.warn("extensive testing. I am not responsible for any griefed servers.");
-        LOGGER.warn("It is always better to avoid offline mode if possible.");
-        LOGGER.warn("USE THIS SOFTWARE AT YOUR OWN RISK.");
+        LOGGER.warn("""
+        DISCLAIMER:
+        This mod is experimental software, it has not undergone
+        extensive testing. I am not responsible for any griefed servers.
+        It is always better to avoid offline mode if possible.
+        USE THIS SOFTWARE AT YOUR OWN RISK.""");
     }
 
     static void bindUserKey(ServerPlayerEntity player, PublicKey key) {
