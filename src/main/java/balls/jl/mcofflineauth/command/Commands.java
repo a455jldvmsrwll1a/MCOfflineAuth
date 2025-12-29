@@ -464,7 +464,7 @@ public class Commands {
         } else {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("Player %s will be exempt from authentication.".formatted(uuid))
+                            () -> Text.literal("The UUID %s will be exempt from authentication.".formatted(uuid))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
@@ -476,7 +476,7 @@ public class Commands {
         if (!IgnoredUsers.ignoreUsername(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("This username is already in the" + " ignore list.")
+                            () -> Text.literal("This username is already in the ignore list.")
                                     .formatted(Formatting.RED),
                             false);
             return FAIL;
@@ -484,7 +484,7 @@ public class Commands {
 
         context.getSource()
                 .sendFeedback(
-                        () -> Text.literal("Player %s will be exempt from authentication.".formatted(name))
+                        () -> Text.literal("The username \"%s\" will be exempt from authentication.".formatted(name))
                                 .formatted(Formatting.GREEN),
                         true);
         return OK;
@@ -503,7 +503,7 @@ public class Commands {
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal(
-                                            "Player %s will no longer be exempt from authentication.".formatted(uuid))
+                                            "The UUID %s will no longer be exempt from authentication.".formatted(uuid))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
@@ -515,7 +515,7 @@ public class Commands {
         if (!IgnoredUsers.unignoreUsername(name)) {
             context.getSource()
                     .sendFeedback(
-                            () -> Text.literal("This username is not in the ignore" + " list.")
+                            () -> Text.literal("This username is not in the ignore list.")
                                     .formatted(Formatting.RED),
                             false);
             return FAIL;
@@ -523,7 +523,7 @@ public class Commands {
             context.getSource()
                     .sendFeedback(
                             () -> Text.literal(
-                                            "Player %s will no longer be exempt from authentication.".formatted(name))
+                                            "The username \"%s\" will no longer be exempt from authentication.".formatted(name))
                                     .formatted(Formatting.GREEN),
                             true);
             return OK;
