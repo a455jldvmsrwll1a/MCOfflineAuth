@@ -171,6 +171,10 @@ public class Commands {
                 /offauth unignore name <username>
                 /offauth approve <username>
                 /offauth reject <username>
+                /offauth uuid list
+                /offauth uuid list <source uuid>
+                /offauth uuid map <from_uuid> <to_uuid>
+                /offauth uuid unmap <from_uuid>
                 /offauth grace <user>
                 """);
 
