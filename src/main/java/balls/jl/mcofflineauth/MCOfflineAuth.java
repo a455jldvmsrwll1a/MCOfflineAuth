@@ -304,23 +304,35 @@ public class MCOfflineAuth implements ModInitializer {
                     return;
                 }
 
-                if (ServerConfig.changesRequireApproval() && !checkPrivilege(player)) {
-                    player.sendMessage(
-                            Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
-                    context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
-                        if (checkPrivilege(otherPlayer))
-                            otherPlayer.sendMessage(Text.literal(
-                                            "§6%s§r is requesting to bind their key.\nUse §7/offauth approve %s§r to approve."
-                                                    .formatted(actualName, actualName))
-                                    .setStyle(Style.EMPTY
-                                            .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
-                                            .withClickEvent(new ClickEvent.RunCommand(
-                                                    "/offauth approve %s".formatted(actualName)))));
-                    });
-                    KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
-                } else {
+                // Check if no need for approval.
+                if (!ServerConfig.changesRequireApproval() || checkPrivilege(player)) {
                     bindUserKey(player, payload.publicKey);
                 }
+
+                // Otherwise, inform both the executing player and any privileged players.
+
+                player.sendMessage(Text.literal("Awaiting admin approval...").formatted(Formatting.DARK_GREEN));
+
+                context.server().getPlayerManager().getPlayerList().forEach(otherPlayer -> {
+                    if (checkPrivilege(otherPlayer))
+                        otherPlayer.sendMessage(Text.literal(
+                                        "§6%s§r is requesting to bind their key."
+                                                .formatted(actualName))
+                                .append(Text.literal(" §a[Approve]§r")
+                                        .setStyle(Style.EMPTY
+                                                .withHoverEvent(
+                                                        new HoverEvent.ShowText(Text.literal("Click to approve!")))
+                                                .withClickEvent(new ClickEvent.RunCommand(
+                                                        "/offauth approve %s".formatted(actualName)))))
+                                .append(Text.literal(" §c[Reject]§r")
+                                        .setStyle(Style.EMPTY
+                                                .withHoverEvent(
+                                                        new HoverEvent.ShowText(Text.literal("Click to reject!")))
+                                                .withClickEvent(new ClickEvent.RunCommand(
+                                                        "/offauth reject %s".formatted(actualName))))));
+                });
+
+                KEY_CHANGE_REQUESTS.requestStore(actualName, payload.publicKey);
             });
         }
     }
