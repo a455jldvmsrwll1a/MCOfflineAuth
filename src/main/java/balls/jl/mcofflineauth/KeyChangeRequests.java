@@ -81,6 +81,10 @@ public class KeyChangeRequests {
         acceptedRequests.clear();
     }
 
+    public Enumeration<String> getRequests() {
+        return pendingRequests.keys();
+    }
+
     private record Request(PublicKey key, Instant deadline) {
         boolean isExpired() {
             return Instant.now().isAfter(deadline);

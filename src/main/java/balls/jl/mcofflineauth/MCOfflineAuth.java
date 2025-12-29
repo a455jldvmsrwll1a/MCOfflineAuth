@@ -93,6 +93,32 @@ public class MCOfflineAuth implements ModInitializer {
                     && UNBOUND_USER_GRACES.isHeld(player.getName().getString()))
                 ServerConfig.print("noKeyGrace", (msg) -> player.sendMessage(Text.of(msg)));
         }
+
+        // Broadcast pending requests to players with elevated privileges.
+
+        if (!checkPrivilege(player)) {
+            return;
+        }
+
+        var requests = KEY_CHANGE_REQUESTS.getRequests();
+
+        if (!requests.hasMoreElements()) {
+            return;
+        }
+
+        while (requests.hasMoreElements()) {
+            String user = requests.nextElement();
+
+            player.sendMessage(Text.literal("§6%s§r is requesting to bind their key.".formatted(user))
+                    .append(Text.literal(" §a[Approve]§r")
+                            .setStyle(Style.EMPTY
+                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to approve!")))
+                                    .withClickEvent(new ClickEvent.RunCommand("/offauth approve %s".formatted(user)))))
+                    .append(Text.literal(" §c[Reject]§r")
+                            .setStyle(Style.EMPTY
+                                    .withHoverEvent(new HoverEvent.ShowText(Text.literal("Click to reject!")))
+                                    .withClickEvent(new ClickEvent.RunCommand("/offauth reject %s".formatted(user))))));
+        }
     }
 
     private static void onServerStarted(MinecraftServer server) {
